@@ -2,7 +2,10 @@
 tFinal = 20;  % s
 tStep = 0.05;  % s
 StreamVelocity = @ZeroVelocity;
+CFD = true;
 % ===================================================================
+
+options.test = 'what up?';
 
 newBody('Name','SillyBuoy',...
     'Mass',1,...

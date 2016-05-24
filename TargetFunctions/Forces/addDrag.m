@@ -4,6 +4,8 @@ global Mooring
 
 bodies = Mooring.bodies;
 lines = Mooring.lines;
+VelocityAtProbes = Mooring.VelocityAtProbes;
+% TODO calculate drag on bodies and line segments given
 
 eDrag = zeros(size(q,1),1);
 
@@ -47,7 +49,14 @@ for i = 1:Num_Line
         xCOM = (LineStart0(1) - LineEnd0(1))/2 + LineEnd0(1);
         yCOM = (LineStart0(2) - LineEnd0(2))/2 + LineEnd0(2);
         zCOM = (LineStart0(3) - LineEnd0(3))/2 + LineEnd0(3);
-        [Ux,Uy,Uz] = findVelocity(xCOM,yCOM,zCOM,tNum);
+        if Mooring.CFD
+            rowindex = 1; % TODO find row index given line # and segment # 
+            Ux = VelocityAtProbes(rowindex,1);
+            Uy = VelocityAtProbes(rowindex,2);
+            Uz = VelocityAtProbes(rowindex,3);
+        else
+            [Ux,Uy,Uz] = findVelocity(xCOM,yCOM,zCOM,tNum);
+        end
         u = [Ux;Uy;Uz] - vCOM; % Relative stream velocity at COM of segment
 
         uTan = u(1)*segUnit(1) + u(2)*segUnit(2) + u(3)*segUnit(3);

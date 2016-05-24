@@ -1,7 +1,7 @@
 % ====== DYANAMIC MODELLING OF COMPLIANT-MOORED TIDAL TURBINES ============
 
 % MooringModel = 'MezzanineConcept1';
-% MooringModel = 'configSinglePt';
+MooringModel = 'configSimple';
 % MooringModel = 'RamanNair_Baddour_2001_TestProblem3Multi';
 %% PART I: Initialize program =============================================
 clear global
@@ -33,6 +33,8 @@ Mooring.environment = struct('grav',9.81,...
 %% PART II: Build system model ============================================
 run(MooringModel)
 
+Mooring.OptionsCFD = options;
+
 if exist('t0','var')
     Mooring.t0 = t0;
 end
@@ -50,6 +52,9 @@ if exist('rho_f','var')
 end
 if exist('StreamVelocity','var')
     Mooring.environment.StreamVelocity = StreamVelocity;
+end
+if exist('CFD','var')
+    Mooring.CFD = CFD;
 end
 
 clearvars -except Mooring
@@ -223,6 +228,34 @@ else
     fprintf('\nUnable to find initial equilibrium position =(\n')
     return
 end
+
+if Mooring.CFD == true
+    % CFD Coupling
+        %Repeat static equilibrium calculation using fluid velocity at line
+        %segment centers given in VelocityAtProbes to find drag on line segments,
+        %and forces on bodies given in ForcesOnBodies
+        %(drag on bodies is already accounted for in ForcesOnBodies, gravity and buoyancy is not)
+
+    NumCFDIterations = 5;
+    CFDtol = 1e-3;
+
+    for i = 1:NumCFDIterations
+        [xyzProbes,xyzBody] = GetProbeLocations(qStatic);
+        % xyzProbes: table with x, y, z positions of line segment centers
+        % xyzBody: table with x, y, z positions of body COMs
+        [VelocityAtProbes,ForcesOnBodies] = runStarCCM(xyzProbes,xyzBody,Mooring);
+        Mooring.VelocityAtProbes = VelocityAtProbes;
+        Mooring.ForcesOnBodies = ForcesOnBodies;
+        [qStaticNext,err,data] = UWMDNewton(@EvaluateStaticPhi,qStatic);
+        if norm(qStaticNext - qStatic) < CFDtol
+            qStatic = qStaticNext;
+            break
+        end
+        qStatic = qStaticNext;
+    end
+end
+    
+    
 
 fprintf('\nSolving dynamic model...')
 f0 = zeros(Mooring.TotalDOF,1);

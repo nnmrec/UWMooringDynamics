@@ -10,6 +10,10 @@ domain = [-50 50 -50 50 0 40];
 perspective = [105 10]; % [Azimuth, Elevation]
 % =========================================================================
 
+% CFD options =============================================================
+options.test = 'did this work?';
+% =========================================================================
+
 newBody('Name','CornerBuoy1','Mass',500,'MMoInertia',[4;4;4],'Vol',2,...
     'InitPosition',[0;0;30],'Drag',[1.2;1.2;1.2],...
     'TransDissipation',5,'AngularDissipation',50,'Area',[4;4;4],'Dimensions',[6;6;6],...
