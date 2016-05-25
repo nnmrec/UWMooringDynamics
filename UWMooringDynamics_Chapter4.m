@@ -1,13 +1,31 @@
-% ====== DYANAMIC MODELLING OF COMPLIANT-MOORED TIDAL TURBINES ============
+%% ====== DYNAMIC MODELLING OF COMPLIANT-MOORED TIDAL TURBINES ============
 
+%% PART I: Initialize program =============================================
+% STARTUP - start from a clean slate, and add any dependencies to the path
+clear global
+close all
+clearvars
+fclose('all');
+clc
+
+addpath(genpath([pwd filesep 'Analysis']));
+addpath(genpath([pwd filesep 'CFD']));
+addpath(genpath([pwd filesep 'CommonFunctions']));
+addpath(genpath([pwd filesep 'ConfigurationFiles']));
+addpath(genpath([pwd filesep 'Development']));
+addpath(genpath([pwd filesep 'Documentation']));
+addpath(genpath([pwd filesep 'ModelConstruction']));
+addpath(genpath([pwd filesep 'Solvers']));
+addpath(genpath([pwd filesep 'TargetFunctions']));
+
+%% PART I.a) set all the user inputs?
+% choose the "input file" to run the simulation:
 % MooringModel = 'MezzanineConcept1';
 MooringModel = 'configSimple';
 % MooringModel = 'RamanNair_Baddour_2001_TestProblem3Multi';
-%% PART I: Initialize program =============================================
-clear global
-close all
 
-% General System Parameters, set to default values
+%% General System Parameters, set to default values
+%  everything is fully initialized at this point?
 global Mooring
 Mooring = struct('t0',0,...
     'tFinal',20,...
