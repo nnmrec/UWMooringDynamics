@@ -1,0 +1,34 @@
+ProbeName,x,y,z
+row-01 Mooring-01,187.5,100,44.5
+row-01 Mooring-02,187.5,133.333,44.5
+row-01 Mooring-03,187.5,166.667,44.5
+row-01 Mooring-04,187.5,200,44.5
+row-01 Mooring-05,187.5,233.333,44.5
+row-01 Mooring-06,187.5,266.667,44.5
+row-01 Mooring-07,187.5,300,44.5
+row-01 Mooring-08,187.5,333.333,44.5
+row-01 Mooring-09,187.5,366.667,44.5
+row-01 Mooring-10,187.5,400,44.5
+row-02 Mooring-01,375,100,44.5
+row-02 Mooring-02,375,133.333,44.5
+row-02 Mooring-03,375,166.667,44.5
+row-02 Mooring-04,375,200,44.5
+row-02 Mooring-05,375,233.333,44.5
+row-02 Mooring-06,375,266.667,44.5
+row-02 Mooring-07,375,300,44.5
+row-02 Mooring-08,375,333.333,44.5
+row-02 Mooring-09,375,366.667,44.5
+row-02 Mooring-10,375,400,44.5
+BuoyancyPod-01,187.5,100,50
+BuoyancyPod-02,187.5,175,50
+BuoyancyPod-03,187.5,250,50
+BuoyancyPod-04,187.5,325,50
+BuoyancyPod-05,187.5,400,50
+BuoyancyPod-06,375,137.5,50
+BuoyancyPod-07,375,212.5,50
+BuoyancyPod-08,375,287.5,50
+BuoyancyPod-09,375,362.5,50
+BuoyancyPod-10,187.5,50,50
+BuoyancyPod-11,187.5,450,50
+BuoyancyPod-12,375,50,50
+BuoyancyPod-13,375,450,50
