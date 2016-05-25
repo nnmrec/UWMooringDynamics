@@ -41,12 +41,14 @@ for i = 1:MaxIterations
     elseif i == MaxIterations
         fprintf('\nNewton Solver: Non-convergence error\n')
         err = 1;
-        qSol = struct('qIterationData',AllqGuess,'PhiIterationData',AllPhis,'PhiNormIterationData',AllPhiNorms,'AlphaIterationData',AllAlphas);
+        qSol = [];
+        NewtonData = struct('qIterationData',AllqGuess,'PhiIterationData',AllPhis,'PhiNormIterationData',AllPhiNorms,'AlphaIterationData',AllAlphas);
         break
     elseif i>10 && abs(mean(sqrt(2*AllPhiNorms(i-10))-sqrt(2*AllPhiNorms(i-10:i))))<eps
         fprintf('\nNewton Solver: Convergence to Infeasible Solution\n')
         err = 1;
-        qSol = struct('qIterationData',AllqGuess,'PhiIterationData',AllPhis,'PhiNormIterationData',AllPhiNorms,'AlphaIterationData',AllAlphas);
+        qSol = [];
+        NewtonData = struct('qIterationData',AllqGuess,'PhiIterationData',AllPhis,'PhiNormIterationData',AllPhiNorms,'AlphaIterationData',AllAlphas);
         break
     end
     
@@ -57,7 +59,8 @@ for i = 1:MaxIterations
     if detJ == 0
         fprintf('\nNewton Solver: Singular Jacobian Matrix Encountered\n')
         err = 1;
-        qSol = struct('qIterationData',AllqGuess,'PhiIterationData',AllPhis,'PhiNormIterationData',AllPhiNorms,'AlphaIterationData',AllAlphas);
+        qSol = [];
+        NewtonData = struct('qIterationData',AllqGuess,'PhiIterationData',AllPhis,'PhiNormIterationData',AllPhiNorms,'AlphaIterationData',AllAlphas);
         break
     end
     

@@ -1,9 +1,5 @@
 %% ====== DYNAMIC MODELLING OF COMPLIANT-MOORED TIDAL TURBINES ============
 
-MooringModel = 'MezzanineConcept1Reduced';
-% MooringModel = 'configSimple';
-% MooringModel = 'RamanNair_Baddour_2001_TestProblem3Multi';
-
 %% PART I: Initialize program =============================================
 % STARTUP - start from a clean slate, and add any dependencies to the path
 clear global
@@ -21,6 +17,10 @@ addpath(genpath([pwd filesep 'Documentation']));
 addpath(genpath([pwd filesep 'ModelConstruction']));
 addpath(genpath([pwd filesep 'Solvers']));
 addpath(genpath([pwd filesep 'TargetFunctions']));
+
+MooringModel = 'MezzanineConcept1Reduced';
+% MooringModel = 'configSimple';
+% MooringModel = 'RamanNair_Baddour_2001_TestProblem3Multi';
 
 %% General System Parameters, set to default values
 %  everything is fully initialized at this point?
@@ -50,7 +50,7 @@ Mooring.environment = struct('grav',9.81,...
 %% PART II: Build system model ============================================
 run(MooringModel)
 
-Mooring.OptionsCFD = options;
+Mooring.OptionsCFD = OPTIONS;
 
 if exist('t0','var')
     Mooring.t0 = t0;

@@ -13,7 +13,15 @@ SlacklineConstraint = false;
 CFD = true;
 
 % CFD options
-options.test = 'what up?';
+OPTIONS.starSimFile      = 'mets2016__.sim';          % name of empty STAR-CCM+ sim file
+OPTIONS.runOnHPC         = false;                       % option to run a PBS script for HPC systems (like Hyak), or run locally
+OPTIONS.nCPUs            = 8;                           % number of CPU cores to run in parallel (check that it matches your PBS submit job script)
+OPTIONS.control          = 'RPM';                       % choose 'RPM' for rotor speed control.  choose 'TSR' for local tip-speed-ratio control
+OPTIONS.nUpdateRPM       = 2;                           % number of inner loops to update the rotor speed based on inflow velocity, should be 1 or greater (this options is probably dependent on max iterations of RANS model)
+OPTIONS.nUpdateMooring   = 2;                           % number of times to iterate between CFD and Mooring models
+OPTIONS.max_iter         = 10;                       	% max number of iterations in CFD model (should be able to estimate this based on CFL number and length of domain, and mesh size)
+OPTIONS.limit_continuity = 1e-3;                        % convergence threshold for continuity
+
 % =========================================================================
 
 % Corner Buoys
