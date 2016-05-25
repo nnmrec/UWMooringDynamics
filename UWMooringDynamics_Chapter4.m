@@ -1,7 +1,7 @@
 % ====== DYANAMIC MODELLING OF COMPLIANT-MOORED TIDAL TURBINES ============
 
-% MooringModel = 'MezzanineConcept1';
-MooringModel = 'configSimple';
+MooringModel = 'MezzanineConcept1Reduced';
+% MooringModel = 'configSimple';
 % MooringModel = 'RamanNair_Baddour_2001_TestProblem3Multi';
 %% PART I: Initialize program =============================================
 clear global
@@ -23,7 +23,8 @@ Mooring = struct('t0',0,...
     'nodes',[],...
     'lines',[],...
     'q0',[],...
-    'lambda0',[]);
+    'lambda0',[],...
+    'SlacklineConstraint',false);
 
 Mooring.environment = struct('grav',9.81,...
     'rho_f',1020,...
@@ -56,6 +57,9 @@ end
 if exist('CFD','var')
     Mooring.CFD = CFD;
 end
+if exist('SlacklineConstraint','var')
+    Mooring.SlacklineConstraint = SlacklineConstraint;
+end
 
 clearvars -except Mooring
 
@@ -66,7 +70,6 @@ fprintf('\nFormatting system for computation...')
 % Time step array
 Mooring.Time = transpose(Mooring.t0:Mooring.tStep:Mooring.tFinal);
 
-% Convert system feature cell arrays to structure arrays
 bodies = Mooring.bodies;
 lines = Mooring.lines;
 nodes = Mooring.nodes;
@@ -192,7 +195,9 @@ for i = 1:Mooring.NumLine
     lines(i).segK = lines(i).UnitK/segLength;
 end
 
-Mooring.NumSlacklineCon = Mooring.NumSlacklineCon + sum([lines(:).NumSegments]);
+if Mooring.SlacklineConstraint
+    Mooring.NumSlacklineCon = Mooring.NumSlacklineCon + sum([lines(:).NumSegments]);
+end
 Mooring.NumSeafloorCon = Mooring.NumSeafloorCon + sum([lines(:).NumSegments]) - Mooring.NumLine;
 
 % Update structures in The Model
@@ -203,6 +208,9 @@ Mooring.q0 = [initialBodyDisp; initialNodeDisp; initialLineDisp];
 Mooring.lambda0 = 0.1*ones(Mooring.NumBodyCon,1);
 Mooring.mu0 = 0.1*ones(Mooring.NumSeafloorCon+Mooring.NumSlacklineCon,1);
 Mooring.nu0 = 0.1*ones(Mooring.NumSeafloorCon+Mooring.NumSlacklineCon,1);
+
+% BANDAID FIX
+Mooring.VelocityAtProbes = [0,0,0];
 
 clearvars -except Mooring
 
@@ -215,6 +223,8 @@ fprintf('     Done!\n')
 fprintf('\nSolving initial equilibrium position...')
 
 q0 = [Mooring.q0;Mooring.lambda0;Mooring.mu0;Mooring.nu0];
+plotInstant(q0,1,0);
+drawnow
 [qStatic,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
 if ~err
     fprintf('     Done!\n')
@@ -229,7 +239,7 @@ else
     return
 end
 
-if Mooring.CFD == true
+if Mooring.CFD
     % CFD Coupling
         %Repeat static equilibrium calculation using fluid velocity at line
         %segment centers given in VelocityAtProbes to find drag on line segments,
@@ -256,20 +266,21 @@ if Mooring.CFD == true
 end
     
     
+if Mooring.DynamicModel
+    fprintf('\nSolving dynamic model...')
+    f0 = zeros(Mooring.TotalDOF,1);
+    a0 = zeros(Mooring.TotalDOF,1);
+    q0Dynamic = [qStatic;f0;a0];
 
-fprintf('\nSolving dynamic model...')
-f0 = zeros(Mooring.TotalDOF,1);
-a0 = zeros(Mooring.TotalDOF,1);
-q0Dynamic = [qStatic;f0;a0];
-
-tic
-[qDynamic,err] = UWMDImpEulerSmoothedFBComp(@EvaluateDynamicPhi,q0Dynamic,Mooring.Time);
-toc
-if ~err
-    fprintf('     Done!\n')
-else
-    fprintf('\nDynamic simulation has exploded :O\n')
-    return
+    tic
+    [qDynamic,err] = UWMDImpEulerSmoothedFBComp(@EvaluateDynamicPhi,q0Dynamic,Mooring.Time);
+    toc
+    if ~err
+        fprintf('     Done!\n')
+    else
+        fprintf('\nDynamic simulation has exploded :O\n')
+        return
+    end
 end
 
 % =========================================================================

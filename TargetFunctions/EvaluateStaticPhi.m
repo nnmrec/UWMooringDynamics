@@ -34,7 +34,12 @@ e = F_grav + F_buoy + F_drag + F_appl;
 
 [phi_Body,phi_q_Body] = constrainBody(q);
 [psi_Seafloor,psi_q_Seafloor] = constrainSeafloor(q);
-[psi_Slackline,psi_q_Slackline] = constrainSlackline(q);
+if Mooring.SlacklineConstraint
+    [psi_Slackline,psi_q_Slackline] = constrainSlackline(q);
+else
+    psi_Slackline = zeros(0,0);
+    psi_q_Slackline = zeros(0,n);
+end;
 
 phi = phi_Body;
 phi_q = phi_q_Body;

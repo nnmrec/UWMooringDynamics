@@ -1,7 +1,7 @@
 function [qSol,err,NewtonData] = UWMDNewton(F,q0)
 
 % Solver properties
-tol = 1e-3;
+tol = 1e-6;
 MaxIterations = 100;
 MaxLineSearch = 10;
 

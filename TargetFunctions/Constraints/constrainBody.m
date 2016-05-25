@@ -1,4 +1,4 @@
-function [phi, phi_q] = bodyConstraints(q)
+function [phi, phi_q] = constrainBody(q)
 
 global Mooring
 bodies = Mooring.bodies;
