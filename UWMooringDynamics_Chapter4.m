@@ -22,12 +22,6 @@ addpath(genpath([pwd filesep 'ModelConstruction']));
 addpath(genpath([pwd filesep 'Solvers']));
 addpath(genpath([pwd filesep 'TargetFunctions']));
 
-%% PART I.a) set all the user inputs?
-% choose the "input file" to run the simulation:
-% MooringModel = 'MezzanineConcept1';
-MooringModel = 'configSimple';
-% MooringModel = 'RamanNair_Baddour_2001_TestProblem3Multi';
-
 %% General System Parameters, set to default values
 %  everything is fully initialized at this point?
 global Mooring
