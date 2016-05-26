@@ -32,7 +32,10 @@ public class createPartsAndRegionsBC extends StarMacro {
 	///////////////////////////////////////////////////////////////////////////////
 	// USER INPUTS
 	//
-	static final double length 				= 1000;	// length in x-dimention (steamwise) [m]
+	static final double xo           = -500;     // origin x coordinate [m]
+  static final double yo           = -500;     // origin y coordinate [m]
+  static final double zo           = 0;        // origin z coordinate [m]
+  static final double length 				= 1000;	// length in x-dimention (steamwise) [m]
 	static final double width 				= 500;		// length in y-dimention (crossflow) [m]
 	static final double depth 				= 60;		// length in z-dimention (vertical) [m]
 	static final double bc_TI 				= 0.1; 		// turbulence intensity for inlet and outlet TI = u' / U [unitless]
@@ -78,7 +81,8 @@ public class createPartsAndRegionsBC extends StarMacro {
 
     coordinate_0.setCoordinate(units_0, units_0, units_0, new DoubleVector(new double[] {-1.0, -1.0, -1.0}));
 
-    coordinate_0.setValue(new DoubleVector(new double[] {0.0, 0.0, 0.0}));
+    // coordinate_0.setValue(new DoubleVector(new double[] {0.0, 0.0, 0.0}));
+    coordinate_0.setValue(new DoubleVector(new double[] {xo, yo, zo}));
 
     Coordinate coordinate_1 = 
       simpleBlockPart_0.getCorner2();

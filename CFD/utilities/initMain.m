@@ -20,6 +20,8 @@ filesIO.fileOut_torque = [filesIO.dir_output filesep 'rotors-torque.csv'];
 % system(['cp ' filesIO.dir_input filesep optionsFile ' ' filesIO.dir_input filesep 'options.m']);
 run([filesIO.dir_input filesep optionsFile])
 
+% actually this is setup in Tyler's configuration files now
+
 %% clean-up any auto-generated files (if they are too big to track in git ... should add to the .gitignore file)
 % system('rm log.*');
 % system('rm runs.*');
