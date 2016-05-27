@@ -99,10 +99,10 @@ public class main extends StarMacro {
 
 	  new StarScript(getActiveSimulation(),	new java.io.File(resolvePath("meshAndSave.java"))).play();
 
-    // dunno if I actuall want to update convergence criteria on the fly ... meaningeach outer loop iteration between mooring and CFD
+   //  // dunno if I actuall want to update convergence criteria on the fly ... meaningeach outer loop iteration between mooring and CFD
     new StarScript(getActiveSimulation(), new java.io.File(resolvePath("updateConvergenceCriteria.java"))).play();
 
-    // new StarScript(getActiveSimulation(), new java.io.File(resolvePath("prepareAMR.java"))).play();
+   //  // new StarScript(getActiveSimulation(), new java.io.File(resolvePath("prepareAMR.java"))).play();
 
     
 

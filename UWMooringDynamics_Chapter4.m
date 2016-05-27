@@ -320,7 +320,9 @@ if Mooring.CFD
 %         [VelocityAtProbes,ForcesOnBodies] = run_starccm(xyzProbes,xyzBody,Mooring);
         [probes,rotors] = run_starccm(probes,rotors,Mooring);
         
-        Mooring.VelocityAtProbes = probes.vel;
+        
+        
+        Mooring.VelocityAtProbes = [probes.velX probes.velY probes.velZ];
         Mooring.ForcesOnBodies = [rotors.thrust rotors.torque];
         
         % Repeat static equilibrium calculation using fluid velocity at line

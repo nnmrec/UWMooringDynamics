@@ -63,6 +63,11 @@ private void execute0() {
 Simulation simulation_0 = 
 getActiveSimulation();
 
+// because starccm+ gets confused when the aspect ratio of the box changes,
+// need to use some logic to split/name the faces of the box ...
+// although upon further inspection, this may have been fixed in latest v11 of starccm
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // create the "background" Mesh
 //

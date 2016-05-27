@@ -32,15 +32,15 @@ public class createPartsAndRegionsBC extends StarMacro {
 	///////////////////////////////////////////////////////////////////////////////
 	// USER INPUTS
 	//
-	static final double xo           = -500;     // origin x coordinate [m]
-  static final double yo           = -500;     // origin y coordinate [m]
+	static final double xo           = -100;     // origin x coordinate [m]
+  static final double yo           = -100;     // origin y coordinate [m]
   static final double zo           = 0;        // origin z coordinate [m]
-  static final double length 				= 1000;	// length in x-dimention (steamwise) [m]
-	static final double width 				= 500;		// length in y-dimention (crossflow) [m]
+  static final double length 				= 500;	// length in x-dimention (steamwise) [m]
+	static final double width 				= 250;		// length in y-dimention (crossflow) [m]
 	static final double depth 				= 60;		// length in z-dimention (vertical) [m]
 	static final double bc_TI 				= 0.1; 		// turbulence intensity for inlet and outlet TI = u' / U [unitless]
 	static final double bc_Lturb 			= 3.125; 	// turbulent length scale for inlet and outlet [m]
-	static final double inlet_Vx 			= 1.0; 		// inlet x-velocity [m/s]
+	static final double inlet_Vx 			= 2.0; 		// inlet x-velocity [m/s]
 	static final double inlet_Vy 			= 0.0; 		// inlet y-velocity [m/s]
 	static final double inlet_Vz 			= 0.0; 		// inlet z-velocity [m/s]
 	static final double z0 					= 0.01;		// seabed surface roughness height [m]
@@ -91,7 +91,7 @@ public class createPartsAndRegionsBC extends StarMacro {
 
     coordinate_1.setCoordinate(units_0, units_0, units_0, new DoubleVector(new double[] {1.0, 1.0, 1.0}));
 
-    coordinate_1.setValue(new DoubleVector(new double[] {length, width, depth}));
+    coordinate_1.setValue(new DoubleVector(new double[] {xo+length, yo+width, zo+depth}));
 
     simpleBlockPart_0.rebuildSimpleShapePart();
 
@@ -104,55 +104,54 @@ public class createPartsAndRegionsBC extends StarMacro {
     //
     PartSurface partSurface_0 = 
       ((PartSurface) simpleBlockPart_0.getPartSurfaceManager().getPartSurface("Block Surface"));
-
     simpleBlockPart_0.getPartSurfaceManager().splitPartSurfacesByAngle(new NeoObjectVector(new Object[] {partSurface_0}), 89.0);
-
     simulation_0.getRegionManager().newRegionsFromParts(new NeoObjectVector(new Object[] {simpleBlockPart_0}), "OneRegionPerPart", null, "OneBoundaryPerPartSurface", null, "OneFeatureCurve", null, true);
-
-
-    partSurface_0.setPresentationName("Inlet");
+    
+    // partSurface_0.setPresentationName("Inlet");
+    partSurface_0.setPresentationName("Sea Surface");
 
 
     PartSurface partSurface_1 = 
       ((PartSurface) simpleBlockPart_0.getPartSurfaceManager().getPartSurface("Block Surface 2"));
-
-    partSurface_1.setPresentationName("Left Bank");
+    // partSurface_1.setPresentationName("Left Bank");
+      partSurface_1.setPresentationName("Right Bank");
 
 
     PartSurface partSurface_2 = 
       ((PartSurface) simpleBlockPart_0.getPartSurfaceManager().getPartSurface("Block Surface 3"));
-
-    partSurface_2.setPresentationName("Seabed");
+    // partSurface_2.setPresentationName("Seabed");
+      partSurface_2.setPresentationName("Inlet");
 
 
     PartSurface partSurface_3 = 
       ((PartSurface) simpleBlockPart_0.getPartSurfaceManager().getPartSurface("Block Surface 4"));
-
-    partSurface_3.setPresentationName("Right Bank");
+    // partSurface_3.setPresentationName("Right Bank");
+      partSurface_3.setPresentationName("Left Bank");
 
 
     PartSurface partSurface_4 = 
       ((PartSurface) simpleBlockPart_0.getPartSurfaceManager().getPartSurface("Block Surface 5"));
-
-    partSurface_4.setPresentationName("Sea Surface");
+    // partSurface_4.setPresentationName("Sea Surface");
+      partSurface_4.setPresentationName("Seabed");
 
 
     PartSurface partSurface_5 = 
       ((PartSurface) simpleBlockPart_0.getPartSurfaceManager().getPartSurface("Block Surface 6"));
-
     partSurface_5.setPresentationName("Outlet");
 
 
 	///////////////////////////////////////////////////////////////////////////////
 	// assign types to Regions and Boundary Conditions
-    //
-
-    // INLET
+  //   
     Region region_0 = 
       simulation_0.getRegionManager().getRegion("Block");
 
+
+
+    // INLET
     Boundary boundary_0 = 
-      region_0.getBoundaryManager().getBoundary("Block Surface");
+      // region_0.getBoundaryManager().getBoundary("Block Surface");
+    region_0.getBoundaryManager().getBoundary("Block Surface 3");
 
     boundary_0.setBoundaryType(InletBoundary.class);
 
@@ -192,7 +191,7 @@ public class createPartsAndRegionsBC extends StarMacro {
 
 
     // OUTLET
-	Boundary boundary_5 = 
+	  Boundary boundary_5 = 
       region_0.getBoundaryManager().getBoundary("Block Surface 6");
 
     boundary_5.setPresentationName("Outlet");
@@ -217,21 +216,24 @@ public class createPartsAndRegionsBC extends StarMacro {
     Boundary boundary_1 = 
       region_0.getBoundaryManager().getBoundary("Block Surface 2");
 
-    boundary_1.setPresentationName("Left Bank");
+    // boundary_1.setPresentationName("Left Bank");
+      boundary_1.setPresentationName("Right Bank");
 
     boundary_1.getConditions().get(WallShearStressOption.class).setSelected(WallShearStressOption.Type.SLIP);
 
     Boundary boundary_4 = 
-      region_0.getBoundaryManager().getBoundary("Block Surface 5");
+      region_0.getBoundaryManager().getBoundary("Block Surface");
+      // region_0.getBoundaryManager().getBoundary("Block Surface 5");
 
-	boundary_4.setPresentationName("Sea Surface");      
+	boundary_4.setPresentationName("Sea Surface");
 
     boundary_4.getConditions().get(WallShearStressOption.class).setSelected(WallShearStressOption.Type.SLIP);
 
     Boundary boundary_3 = 
       region_0.getBoundaryManager().getBoundary("Block Surface 4");
 
-    boundary_3.setPresentationName("Right Bank");
+    // boundary_3.setPresentationName("Right Bank");
+      boundary_3.setPresentationName("Left Bank");
 
     boundary_3.getConditions().get(WallShearStressOption.class).setSelected(WallShearStressOption.Type.SLIP);
 
@@ -239,7 +241,7 @@ public class createPartsAndRegionsBC extends StarMacro {
 
     // seabed
     Boundary boundary_2 = 
-      region_0.getBoundaryManager().getBoundary("Block Surface 3");
+      region_0.getBoundaryManager().getBoundary("Block Surface 5");
 
     boundary_2.setPresentationName("Seabed");
 

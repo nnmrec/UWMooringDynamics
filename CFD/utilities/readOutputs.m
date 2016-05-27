@@ -2,8 +2,8 @@ function [probes, rotors] = readOutputs(filesIO,probes,rotors)
 %readOutputs reads the output files from STAR-CCM+
 %   Detailed explanation goes here
 
-    %% PROBES: read/process the file header
-    fid = fopen(filesIO.fileOut_probes, 'r');
+    %% PROBES velocity X: read/process the file header
+    fid = fopen(filesIO.fileOut_probesX, 'r');
     header = fgetl(fid);
     fclose(fid);
 
@@ -15,12 +15,48 @@ function [probes, rotors] = readOutputs(filesIO,probes,rotors)
         probes_name{n-1} = varname;
     end
     % read the data section
-    probes.vel = csvread(filesIO.fileOut_probes,1);
-    probes.vel = probes.vel(end,2:end)';    % only keep the last iteration
-    % actually this appears to be in proper order! yay!
-    % horzcat(probes_name, num2cell(probes.vel))
+    probes.velX = csvread(filesIO.fileOut_probesX,1);
+    probes.velX = probes.velX(end,2:end)';    % only keep the last iteration
 
+    %% PROBES velocity Y: read/process the file header
+    fid = fopen(filesIO.fileOut_probesY, 'r');
+    header = fgetl(fid);
+    fclose(fid);
 
+    cols        = strsplit(header,',');
+    probes_name = cell(size(cols,2)-1, 1);
+    for n = 2:size(cols,2)
+        token            = strtok(cols(n), ':');
+        varname          = token{1}(2:end);
+        probes_name{n-1} = varname;
+    end
+    % read the data section
+    probes.velY = csvread(filesIO.fileOut_probesY,1);
+    probes.velY = probes.velY(end,2:end)';    % only keep the last iteration
+    
+    
+    %% PROBES velocity Z: read/process the file header
+    fid = fopen(filesIO.fileOut_probesZ, 'r');
+    header = fgetl(fid);
+    fclose(fid);
+
+    cols        = strsplit(header,',');
+    probes_name = cell(size(cols,2)-1, 1);
+    for n = 2:size(cols,2)
+        token            = strtok(cols(n), ':');
+        varname          = token{1}(2:end);
+        probes_name{n-1} = varname;
+    end
+    % read the data section
+    probes.velZ = csvread(filesIO.fileOut_probesZ,1);
+    probes.velZ = probes.velZ(end,2:end)';    % only keep the last iterati
+    
+    
+    
+    
+    
+    
+    
     %% ROTOR INFLOW SPEEDS: read/process the file header
     fid = fopen(filesIO.fileOut_rotors, 'r');
     header = fgetl(fid);
