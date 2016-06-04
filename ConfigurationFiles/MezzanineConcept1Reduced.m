@@ -12,6 +12,7 @@ perspective = [105 10]; % [Azimuth, Elevation]
 DynamicModel = false;
 SlacklineConstraint = false;
 CFD = true;
+InletVelocity = [2;0;0];
 
 % CFD options
 OptionsCFD.runOnHPC         = false;                        % option to run a PBS script for HPC systems (like Hyak), or run locally

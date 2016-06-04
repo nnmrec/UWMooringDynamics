@@ -75,6 +75,7 @@ if exist('StreamVelocity','var')
 end
 if exist('CFD','var')
     Mooring.CFD = CFD;
+    Mooring.VelocityAtProbes = InletVelocity;
 end
 if exist('SlacklineConstraint','var')
     Mooring.SlacklineConstraint = SlacklineConstraint;
@@ -231,9 +232,6 @@ Mooring.lambda0 = 0.1*ones(Mooring.NumBodyCon,1);
 Mooring.mu0 = 0.1*ones(Mooring.NumSeafloorCon+Mooring.NumSlacklineCon,1);
 Mooring.nu0 = 0.1*ones(Mooring.NumSeafloorCon+Mooring.NumSlacklineCon,1);
 
-% BANDAID FIX
-Mooring.VelocityAtProbes = [0,0,0];
-
 clearvars -except Mooring
 
 % Checkpoint: save all the stuff needed to solve the system
@@ -241,7 +239,7 @@ save('Assembled System')
 fprintf('     Done!\n')
 
 % =========================================================================
-%% PART IV: Solve equations of motion =====================================
+%% PART IV: Solve equilibrium equations ===================================
 fprintf('\nSolving initial equilibrium position...\n')
 
 q0 = [Mooring.q0;Mooring.lambda0;Mooring.mu0;Mooring.nu0];
