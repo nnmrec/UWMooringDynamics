@@ -324,10 +324,11 @@ if Mooring.CFD
         Mooring.ForcesOnBodies = [rotors.thrust rotors.torque];
         
         % Repeat static equilibrium calculation using fluid velocity at line
-        % segment centers given in VelocityAtProbes to find drag on line segments,
-        % and forces on bodies given in ForcesOnBodies
-        % drag on bodies is already accounted for in ForcesOnBodies, gravity and buoyancy is not
-        % restart the mooring model now with velocities/forces/moments sovled from the CFD model
+        % segment centers and non-turbine body COMs given in VelocityAtProbes 
+        % to find drag on line segments and buoys, and forces on turbines
+        % given in ForcesOnBodies.
+        % Drag on turbines is already accounted for in ForcesOnBodies, gravity and buoyancy is not.
+        % Restart the mooring model now with velocities/forces/moments sovled from the CFD model
         [qStaticNext,err,data] = UWMDNewton(@EvaluateStaticPhi,qStatic);
         
         % compute a convergence criteria

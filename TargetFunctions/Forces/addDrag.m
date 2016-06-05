@@ -19,7 +19,24 @@ Num_Body = Mooring.NumBody;
 Num_Line = Mooring.NumLine;
 
 %============ Section 1 - Fluid Force on Rigid body ============
-if size(VelocityAtProbes,2) <= 1 || ~Mooring.CFD
+if size(VelocityAtProbes,2) > 1 && Mooring.CFD
+    BuoyProbeIndex = sum([lines.NumSegments]) + 1;
+    BodiesThatAreNotTurbines = find(~ismember({bodies.Type},'turbine'));
+    for i = 1:size(BodiesThatAreNotTurbines,2)
+        BodyIndex = bodies(BodiesThatAreNotTurbines(i)).RowIndices;
+        Ux = VelocityAtProbes(BuoyProbeIndex,1);
+        Uy = VelocityAtProbes(BuoyProbeIndex,2);
+        Uz = VelocityAtProbes(BuoyProbeIndex,3);
+        BuoyProbeIndex = BuoyProbeIndex + 1;
+        A = EulerAngles(q(BodyIndex(4)),q(BodyIndex(5)),q(BodyIndex(6)));
+        u1 = A\([Ux;Uy;Uz] - f(BodyIndex(1:3))); % Relative fluid velocity at body COM (body-fixed frame)
+
+        DragForce_BodyFrame = (1/2)*rho_f*bodyDrag(1:3,i).*bodyArea(1:3,i).*abs(u1).*u1;
+        DragForce_Inertial = A*DragForce_BodyFrame;
+
+        eDrag(BodyIndex(1:3)) = eDrag(BodyIndex(1:3)) + DragForce_Inertial;
+    end
+else
     for i = 1:Num_Body
         BodyIndex = bodies(i).RowIndices;
         [Ux,Uy,Uz] = findVelocity(q(BodyIndex(1)),q(BodyIndex(2)),q(BodyIndex(3)),tNum);
