@@ -19,10 +19,10 @@ n = Mooring.BodyDOF + Mooring.NodeDOF + Mooring.LineDOF; % Number of variables
 NumberOfSteps = size(YFull,2);
 
 Y = YFull(1:n,:);
-Y_dot = YFull(n+1:2*n,:);
+%Y_dot = YFull(n+1:2*n,:);
 if NumberOfSteps == 1
     NumberOfSteps = size(Y,1);
-    t = Time*ones(NumberOfSteps,1);
+    t = ones(NumberOfSteps,1);
 else
     t = Time;
 end
@@ -37,7 +37,8 @@ for i = 1:NumberOfSteps
     
     GravityForceData(:,i) = addGravity(Y(:,i));
     BuoyancyForceData(:,i) = addBuoyancy(Y(:,i));
-    FluidForceData(:,i) = addDrag(Y(:,i),Y_dot(:,i),t(i));
+%     FluidForceData(:,i) = addDrag(Y(:,i),Y_dot(:,i),t(i));
+    FluidForceData(:,i) = addDrag(Y(:,i),zeros(size(Y,1),1),t(i));
     AppliedForceData(:,i) = addApplied(Y(:,i),t(i));
     SpringForceData(:,i) = -PotentialEnergyVariation(Y(:,i));
     %DampingForceData(:,i) = -DampingVariation(Y(:,i),Y_dot(:,i));

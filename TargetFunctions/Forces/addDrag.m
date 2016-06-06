@@ -4,8 +4,6 @@ global Mooring
 
 bodies = Mooring.bodies;
 lines = Mooring.lines;
-VelocityAtProbes = Mooring.VelocityAtProbes;
-% TODO calculate drag on bodies and line segments given
 
 eDrag = zeros(size(q,1),1);
 
@@ -19,24 +17,7 @@ Num_Body = Mooring.NumBody;
 Num_Line = Mooring.NumLine;
 
 %============ Section 1 - Fluid Force on Rigid body ============
-if size(VelocityAtProbes,2) > 1 && Mooring.CFD
-    BuoyProbeIndex = sum([lines.NumSegments]) + 1;
-    BodiesThatAreNotTurbines = find(~ismember({bodies.Type},'turbine'));
-    for i = 1:size(BodiesThatAreNotTurbines,2)
-        BodyIndex = bodies(BodiesThatAreNotTurbines(i)).RowIndices;
-        Ux = VelocityAtProbes(BuoyProbeIndex,1);
-        Uy = VelocityAtProbes(BuoyProbeIndex,2);
-        Uz = VelocityAtProbes(BuoyProbeIndex,3);
-        BuoyProbeIndex = BuoyProbeIndex + 1;
-        A = EulerAngles(q(BodyIndex(4)),q(BodyIndex(5)),q(BodyIndex(6)));
-        u1 = A\([Ux;Uy;Uz] - f(BodyIndex(1:3))); % Relative fluid velocity at body COM (body-fixed frame)
-
-        DragForce_BodyFrame = (1/2)*rho_f*bodyDrag(1:3,i).*bodyArea(1:3,i).*abs(u1).*u1;
-        DragForce_Inertial = A*DragForce_BodyFrame;
-
-        eDrag(BodyIndex(1:3)) = eDrag(BodyIndex(1:3)) + DragForce_Inertial;
-    end
-else
+if ~Mooring.CFD % No CFD coupling
     for i = 1:Num_Body
         BodyIndex = bodies(i).RowIndices;
         [Ux,Uy,Uz] = findVelocity(q(BodyIndex(1)),q(BodyIndex(2)),q(BodyIndex(3)),tNum);
@@ -47,6 +28,40 @@ else
         DragForce_Inertial = A*DragForce_BodyFrame;
 
         eDrag(BodyIndex(1:3)) = eDrag(BodyIndex(1:3)) + DragForce_Inertial;
+    end
+else % Yes CFD coupling
+    VelocityAtProbes = Mooring.VelocityAtProbes;
+    if size(VelocityAtProbes,2) <= 1 % First equilibrium calculation, no CFD data yet
+        for i = 1:Num_Body
+            BodyIndex = bodies(i).RowIndices;
+            Ux = VelocityAtProbes(1); % inlet x-velocity
+            Uy = VelocityAtProbes(2); % inlet y-velocity
+            Uz = VelocityAtProbes(3); % inlet z-velocity
+            A = EulerAngles(q(BodyIndex(4)),q(BodyIndex(5)),q(BodyIndex(6)));
+            u1 = A\([Ux;Uy;Uz] - f(BodyIndex(1:3))); % Relative fluid velocity at body COM (body-fixed frame)
+
+            DragForce_BodyFrame = (1/2)*rho_f*bodyDrag(1:3,i).*bodyArea(1:3,i).*abs(u1).*u1;
+            DragForce_Inertial = A*DragForce_BodyFrame;
+
+            eDrag(BodyIndex(1:3)) = eDrag(BodyIndex(1:3)) + DragForce_Inertial;
+        end
+    else % CFD data is available
+        BuoyProbeIndex = sum([lines.NumSegments]) + 1;
+        BodiesThatAreNotTurbines = find(~ismember({bodies.Type},'turbine'));
+        for i = 1:size(BodiesThatAreNotTurbines,2)
+            BodyIndex = bodies(BodiesThatAreNotTurbines(i)).RowIndices;
+            Ux = VelocityAtProbes(BuoyProbeIndex,1);
+            Uy = VelocityAtProbes(BuoyProbeIndex,2);
+            Uz = VelocityAtProbes(BuoyProbeIndex,3);
+            BuoyProbeIndex = BuoyProbeIndex + 1;
+            A = EulerAngles(q(BodyIndex(4)),q(BodyIndex(5)),q(BodyIndex(6)));
+            u1 = A\([Ux;Uy;Uz] - f(BodyIndex(1:3))); % Relative fluid velocity at body COM (body-fixed frame)
+
+            DragForce_BodyFrame = (1/2)*rho_f*bodyDrag(1:3,i).*bodyArea(1:3,i).*abs(u1).*u1;
+            DragForce_Inertial = A*DragForce_BodyFrame;
+
+            eDrag(BodyIndex(1:3)) = eDrag(BodyIndex(1:3)) + DragForce_Inertial;
+        end
     end
 end
 
@@ -69,14 +84,20 @@ for i = 1:Num_Line
         xCOM = (LineStart0(1) - LineEnd0(1))/2 + LineEnd0(1);
         yCOM = (LineStart0(2) - LineEnd0(2))/2 + LineEnd0(2);
         zCOM = (LineStart0(3) - LineEnd0(3))/2 + LineEnd0(3);
-        if Mooring.CFD && size(VelocityAtProbes,2) > 1
+        
+        if ~Mooring.CFD
+            [Ux,Uy,Uz] = findVelocity(xCOM,yCOM,zCOM,tNum);
+        elseif size(VelocityAtProbes,2) > 1
             Ux = VelocityAtProbes(LineProbeIndex,1);
             Uy = VelocityAtProbes(LineProbeIndex,2);
             Uz = VelocityAtProbes(LineProbeIndex,3);
             LineProbeIndex = LineProbeIndex + 1;
         else
-            [Ux,Uy,Uz] = findVelocity(xCOM,yCOM,zCOM,tNum);
+            Ux = VelocityAtProbes(1);
+            Uy = VelocityAtProbes(2);
+            Uz = VelocityAtProbes(3);
         end
+        
         u = [Ux;Uy;Uz] - vCOM; % Relative stream velocity at COM of segment
 
         uTan = u(1)*segUnit(1) + u(2)*segUnit(2) + u(3)*segUnit(3);
@@ -107,13 +128,17 @@ for i = 1:Num_Line
         COM = (q(InternalNodes(1).RowIndices) - LineStart0)/2 + LineStart0;
         vCOM = (1/2)*(vLineStart0 + f(InternalNodes(1).RowIndices));
         
-        if Mooring.CFD && size(VelocityAtProbes,2) > 1
+        if ~Mooring.CFD
+            [Ux,Uy,Uz] = findVelocity(COM(1),COM(2),COM(3),tNum);
+        elseif size(VelocityAtProbes,2) > 1
             Ux = VelocityAtProbes(LineProbeIndex,1);
             Uy = VelocityAtProbes(LineProbeIndex,2);
             Uz = VelocityAtProbes(LineProbeIndex,3);
             LineProbeIndex = LineProbeIndex + 1;
         else
-            [Ux,Uy,Uz] = findVelocity(COM(1),COM(2),COM(3),tNum);
+            Ux = VelocityAtProbes(1);
+            Uy = VelocityAtProbes(2);
+            Uz = VelocityAtProbes(3);
         end
         u = [Ux;Uy;Uz] - vCOM;
 
@@ -143,13 +168,17 @@ for i = 1:Num_Line
 
             vCOM = (1/2)*(f(InternalNodes(j+1).RowIndices) + f(InternalNodes(j).RowIndices));
             COM = (q(InternalNodes(j+1).RowIndices) - q(InternalNodes(j).RowIndices))/2 + q(InternalNodes(j).RowIndices);
-            if Mooring.CFD && size(VelocityAtProbes,2) > 1
+            if ~Mooring.CFD
+                [Ux,Uy,Uz] = findVelocity(COM(1),COM(2),COM(3),tNum);
+            elseif size(VelocityAtProbes,2) > 1
                 Ux = VelocityAtProbes(LineProbeIndex,1);
                 Uy = VelocityAtProbes(LineProbeIndex,2);
                 Uz = VelocityAtProbes(LineProbeIndex,3);
                 LineProbeIndex = LineProbeIndex + 1;
             else
-                [Ux,Uy,Uz] = findVelocity(COM(1),COM(2),COM(3),tNum);
+                Ux = VelocityAtProbes(1);
+                Uy = VelocityAtProbes(2);
+                Uz = VelocityAtProbes(3);
             end
             u = [Ux;Uy;Uz] - vCOM;
             uTan = u(1)*segUnit(1) + u(2)*segUnit(2) + u(3)*segUnit(3);
@@ -177,13 +206,17 @@ for i = 1:Num_Line
         COM = (LineEnd0 - q(InternalNodes(end).RowIndices))/2 + q(InternalNodes(end).RowIndices);
         vCOM = (1/2)*(f(InternalNodes(end).RowIndices) + vLineEnd0);
         
-        if Mooring.CFD && size(VelocityAtProbes,2) > 1
+        if ~Mooring.CFD
+            [Ux,Uy,Uz] = findVelocity(COM(1),COM(2),COM(3),tNum);
+        elseif size(VelocityAtProbes,2) > 1
             Ux = VelocityAtProbes(LineProbeIndex,1);
             Uy = VelocityAtProbes(LineProbeIndex,2);
             Uz = VelocityAtProbes(LineProbeIndex,3);
             LineProbeIndex = LineProbeIndex + 1;
         else
-            [Ux,Uy,Uz] = findVelocity(COM(1),COM(2),COM(3),tNum);
+            Ux = VelocityAtProbes(1);
+            Uy = VelocityAtProbes(2);
+            Uz = VelocityAtProbes(3);
         end
         u = [Ux;Uy;Uz] - vCOM;
 

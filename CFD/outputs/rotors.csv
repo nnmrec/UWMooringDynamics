@@ -1,3 +1,3 @@
 name,table,rotor_rpm,x,y,z,nx,ny,nz,rotor_radius,hub_radius,rotor_thick
-Turbine1,Mezzanine,9.2,37.4613,30,22.6016,1,0,0,12.5,0,2
-Turbine2,Mezzanine,9.2,148.414,30,30.7875,1,0,0,12.5,0,2
+Turbine1,Mezzanine,9.2,197.258,30,5.36022e-11,1,0,0,12.5,0,2
+Turbine2,Mezzanine,9.2,316.68,30,6.13098e-11,1,0,0,12.5,0,2
