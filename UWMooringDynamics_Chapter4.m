@@ -264,12 +264,13 @@ end
 %% CFD Coupling
 if Mooring.CFD
     for j = 1:20
-        Mooring.InletVelocity = [(j-1)/10;0;0];
+%         Mooring.InletVelocity = [(j-1)/10;0;0];
 
         for i = 1:Mooring.OptionsCFD.NumCFDIterations
             % parse the solution of the mooring code, to find
             % xyzProbes: table with x, y, z positions of line segment centers
             %   xyzBody: table with x, y, z positions of body COMs
+            
             [xyzProbes,xyzBody] = GetProbeLocations(qStatic);
 
             % For bodies find which indicies correspond to turbines and buoy
@@ -334,7 +335,6 @@ if Mooring.CFD
             % Drag on turbines is already accounted for in ForcesOnBodies, gravity and buoyancy is not.
             % Restart the mooring model now with velocities/forces/moments sovled from the CFD model
 
-            Mooring.InletVelocity = [(j-1)/10;0;0];
             [qStaticNext,err,data] = UWMDNewton(@EvaluateStaticPhi,qStatic);
 
             % compute a convergence criteria
