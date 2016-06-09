@@ -1,0 +1,8 @@
+# temp and log files #
+###################
+CFD/*.html
+CFD/log.*
+CFD/*.sim~
+CFD/runs_*
+
+

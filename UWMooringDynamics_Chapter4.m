@@ -8,6 +8,12 @@ clearvars
 fclose('all');
 clc
 
+% USER SELECT INPUT FILE
+MooringModel = 'MezzanineConcept1Reduced';
+% MooringModel = 'configSimple';
+% MooringModel = 'RamanNair_Baddour_2001_TestProblem3Multi';
+
+% 
 addpath(genpath([pwd filesep 'Analysis']));
 addpath(genpath([pwd filesep 'CFD']));
 addpath(genpath([pwd filesep 'CommonFunctions']));
@@ -17,10 +23,6 @@ addpath(genpath([pwd filesep 'Documentation']));
 addpath(genpath([pwd filesep 'ModelConstruction']));
 addpath(genpath([pwd filesep 'Solvers']));
 addpath(genpath([pwd filesep 'TargetFunctions']));
-
-MooringModel = 'MezzanineConcept1Reduced';
-% MooringModel = 'configSimple';
-% MooringModel = 'RamanNair_Baddour_2001_TestProblem3Multi';
 
 %% General System Parameters, set to default values
 %  everything is fully initialized at this point?
@@ -47,6 +49,7 @@ Mooring = struct('casename',MooringModel, ...
 Mooring.environment = struct('grav',9.81,...
     'rho_f',1020,...
     'StreamVelocity',@UniformVelocity);
+% danny: I think that StreamVelocity is already defined in the configuration file as StreamVelocityFunction ?
 
 % =========================================================================
 %% PART II: Build system model ============================================
@@ -246,7 +249,7 @@ fprintf('\nSolving initial equilibrium position...\n')
 
 q0 = [Mooring.q0;Mooring.lambda0;Mooring.mu0;Mooring.nu0];
 plotInstant(q0,1,0);
-drawnow
+% drawnow
 [qStatic,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
 if ~err
     fprintf('     Done!\n')
@@ -317,7 +320,6 @@ if Mooring.CFD
         writeInputsRotors(Mooring.OptionsCFD.filesIO,rotors);  % writes a file rotors.csv in the CFD output directory
         
         % run the CFD solver with the most recent positions of nodes, segments, and bodies
-%         [VelocityAtProbes,ForcesOnBodies] = run_starccm(xyzProbes,xyzBody,Mooring);
         [probes,rotors] = run_starccm(probes,rotors,Mooring);
         
         
@@ -339,6 +341,8 @@ if Mooring.CFD
         end
         qStatic = qStaticNext;
     end
+    
+    fprintf('\n Mooring and CFD coupling iterations have completed! :O\n')
     
 end
     

@@ -2,6 +2,17 @@ function plotInstant(Y,fps,instant)
 %Y: Value of displacement variables (rows) at each time step (columns)
 
 global Mooring
+
+
+if ~Mooring.OptionsCFD.graphics
+     % skip making any figures because supercomputers do not run in
+     % graphics mode
+     return
+end
+
+
+
+
 hold off
 
 lines = Mooring.lines;
@@ -60,3 +71,5 @@ for j = 1:Num_Body
 end
 axis tight
 %text(-20,21,32.5,['\fontname{times}Time = ',num2str(instant,'%5.2f'),' s'],'FontSize',18)
+
+draw now

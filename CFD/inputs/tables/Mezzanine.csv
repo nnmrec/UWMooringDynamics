@@ -28,3 +28,4 @@ WindSpeed_m/s,Power_Watts,ThrustCoefficient,RotorSpeed_rev/min
 2.9,	82849,	0.1646,  9.200
 3.0,	82003,	0.1475,  9.199
 3.01,       0,       0,  0
+5.0,        0,       0,  0
