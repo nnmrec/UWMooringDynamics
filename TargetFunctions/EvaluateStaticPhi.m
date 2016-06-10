@@ -32,6 +32,13 @@ F_appl = addApplied(q,0);
 
 e = F_grav + F_buoy + F_drag + F_appl;
 
+if Mooring.CFD && size(Mooring.VelocityAtProbes,2) > 1
+    F_CFD_raw = Mooring.ForcesOnBodies;
+    % format F_CFD_raw for compatibility with e
+    F_CFD = addCFD(q,F_CFD_raw);
+    e = e + F_CFD;
+end
+
 [phi_Body,phi_q_Body] = constrainBody(q);
 [psi_Seafloor,psi_q_Seafloor] = constrainSeafloor(q);
 if Mooring.SlacklineConstraint

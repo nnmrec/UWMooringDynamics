@@ -46,10 +46,11 @@ Mooring = struct('casename',MooringModel, ...
     'SlacklineConstraint',false);
 
 % are Mooring.encironment variables not already set in the ConfigurationFiles?
+% Here we are setting defaults. The configuration file is executed later
+% and these values get overwritten if they are defined in the config file
 Mooring.environment = struct('grav',9.81,...
     'rho_f',1020,...
-    'StreamVelocity',@UniformVelocity);
-% danny: I think that StreamVelocity is already defined in the configuration file as StreamVelocityFunction ?
+    'StreamVelocity',@ZeroVelocity);
 
 % =========================================================================
 %% PART II: Build system model ============================================
@@ -78,6 +79,7 @@ if exist('StreamVelocity','var')
 end
 if exist('CFD','var')
     Mooring.CFD = CFD;
+    Mooring.VelocityAtProbes = InletVelocity;
 end
 if exist('SlacklineConstraint','var')
     Mooring.SlacklineConstraint = SlacklineConstraint;
@@ -234,9 +236,6 @@ Mooring.lambda0 = 0.1*ones(Mooring.NumBodyCon,1);
 Mooring.mu0 = 0.1*ones(Mooring.NumSeafloorCon+Mooring.NumSlacklineCon,1);
 Mooring.nu0 = 0.1*ones(Mooring.NumSeafloorCon+Mooring.NumSlacklineCon,1);
 
-% BANDAID FIX
-Mooring.VelocityAtProbes = [0,0,0];
-
 clearvars -except Mooring
 
 % Checkpoint: save all the stuff needed to solve the system
@@ -244,7 +243,7 @@ save('Assembled System')
 fprintf('     Done!\n')
 
 % =========================================================================
-%% PART IV: Solve equations of motion =====================================
+%% PART IV: Solve equilibrium equations ===================================
 fprintf('\nSolving initial equilibrium position...\n')
 
 q0 = [Mooring.q0;Mooring.lambda0;Mooring.mu0;Mooring.nu0];
@@ -266,80 +265,87 @@ end
 
 %% CFD Coupling
 if Mooring.CFD
+    for j = 1:20
+%         Mooring.InletVelocity = [(j-1)/10;0;0];
 
-    for i = 1:Mooring.OptionsCFD.NumCFDIterations
-        % parse the solution of the mooring code, to find
-        % xyzProbes: table with x, y, z positions of line segment centers
-        %   xyzBody: table with x, y, z positions of body COMs
-        [xyzProbes,xyzBody] = GetProbeLocations(qStatic);
+        for i = 1:Mooring.OptionsCFD.NumCFDIterations
+            % parse the solution of the mooring code, to find
+            % xyzProbes: table with x, y, z positions of line segment centers
+            %   xyzBody: table with x, y, z positions of body COMs
             
-        % For bodies find which indicies correspond to turbines and buoy
-        % buoys: only sample 3 velocities
-        % turbines: sample 3 forces, 3 moments, and 1 inflow speed
-        ind_buoy    = find(ismember({Mooring.bodies.Type},'buoy'));
-        ind_turbine = find(ismember({Mooring.bodies.Type},'turbine'));
-              
-        % point probes must be added at the buoys, and line segments
-        % append the buoy bodies onto the line segment coordinates
-        probes.xyz      = [xyzProbes; xyzBody(ind_buoy,:)];
-        
-        % now come up with meaningful names for the probes
-        % list all the line segment names
-        segsPerLine = [Mooring.lines.NumSegments]';
-        names      = {Mooring.lines.Name}';
-        probesname = cell(sum([Mooring.lines.NumSegments]),1);
-        k = 1;
-        for n = 1:numel(names)
-            for m = 1:segsPerLine(n)
-                probeName = [char(names(n)) '_' sprintf('%3.3d',m)];
-                probesname(k) = cellstr(probeName);
-                k = k+1;
+            [xyzProbes,xyzBody] = GetProbeLocations(qStatic);
+
+            % For bodies find which indicies correspond to turbines and buoy
+            % buoys: only sample 3 velocities
+            % turbines: sample 3 forces, 3 moments, and 1 inflow speed
+            ind_buoy    = find(ismember({Mooring.bodies.Type},'buoy'));
+            ind_turbine = find(ismember({Mooring.bodies.Type},'turbine'));
+
+            % point probes must be added at the buoys, and line segments
+            % append the buoy bodies onto the line segment coordinates
+            probes.xyz      = [xyzProbes; xyzBody(ind_buoy,:)];
+
+            % now come up with meaningful names for the probes
+            % list all the line segment names
+            segsPerLine = [Mooring.lines.NumSegments]';
+            names      = {Mooring.lines.Name}';
+            probesname = cell(sum([Mooring.lines.NumSegments]),1);
+            k = 1;
+            for n = 1:numel(names)
+                for m = 1:segsPerLine(n)
+                    probeName = [char(names(n)) '_' sprintf('%3.3d',m)];
+                    probesname(k) = cellstr(probeName);
+                    k = k+1;
+                end
             end
-        end
-        % now append the buoy names after line segment names
-        bodynames    = {Mooring.bodies.Name}';
-        probes.names = [probesname; bodynames(ind_buoy)];
+            % now append the buoy names after line segment names
+            bodynames    = {Mooring.bodies.Name}';
+            probes.names = [probesname; bodynames(ind_buoy)];
 
-        % get dir and filenames used for CFD stuff
-        Mooring.OptionsCFD.filesIO = init_cfd();
-        
-        % need to write a CSV file of the coordiantes to create point probes
-        % WRITE the initial conditions to "input files" for the CFD model 
-        writeInputsProbes(Mooring.OptionsCFD.filesIO,probes);  % writes a file probes.csv in the CFD output directory
-        
-        % now get the names and coordinates of the turbine type bodies
-        rotors.xyz = xyzBody(ind_turbine,:);
-        rotors.names = bodynames(ind_turbine);        
-        rotors.data = horzcat(rotors.names, ...
-                              Mooring.Turbines.data_cfd(:,1:2), ...
-                              num2cell(rotors.xyz), ...
-                              Mooring.Turbines.data_cfd(:,3:8));
+            % get dir and filenames used for CFD stuff
+            Mooring.OptionsCFD.filesIO = init_cfd();
 
-        % turbines have their own way of reporting the forces/moments/inflowspeed
-        % need to write a CSV file with coordinates of turbines
-        writeInputsRotors(Mooring.OptionsCFD.filesIO,rotors);  % writes a file rotors.csv in the CFD output directory
-        
-        % run the CFD solver with the most recent positions of nodes, segments, and bodies
-        [probes,rotors] = run_starccm(probes,rotors,Mooring);
-        
-        
-        
-        Mooring.VelocityAtProbes = [probes.velX probes.velY probes.velZ];
-        Mooring.ForcesOnBodies = [rotors.thrust rotors.torque];
-        
-        % Repeat static equilibrium calculation using fluid velocity at line
-        % segment centers given in VelocityAtProbes to find drag on line segments,
-        % and forces on bodies given in ForcesOnBodies
-        % drag on bodies is already accounted for in ForcesOnBodies, gravity and buoyancy is not
-        % restart the mooring model now with velocities/forces/moments sovled from the CFD model
-        [qStaticNext,err,data] = UWMDNewton(@EvaluateStaticPhi,qStatic);
-        
-        % compute a convergence criteria
-        if norm(qStaticNext - qStatic) < Mooring.OptionsCFD.CFDtol
+            % need to write a CSV file of the coordiantes to create point probes
+            % WRITE the initial conditions to "input files" for the CFD model 
+            writeInputsProbes(Mooring.OptionsCFD.filesIO,probes);  % writes a file probes.csv in the CFD output directory
+
+            % now get the names and coordinates of the turbine type bodies
+            rotors.xyz = xyzBody(ind_turbine,:);
+            rotors.names = bodynames(ind_turbine);        
+            rotors.data = horzcat(rotors.names, ...
+                                  Mooring.Turbines.data_cfd(:,1:2), ...
+                                  num2cell(rotors.xyz), ...
+                                  Mooring.Turbines.data_cfd(:,3:8));
+
+            % turbines have their own way of reporting the forces/moments/inflowspeed
+            % need to write a CSV file with coordinates of turbines
+            writeInputsRotors(Mooring.OptionsCFD.filesIO,rotors);  % writes a file rotors.csv in the CFD output directory
+
+            % run the CFD solver with the most recent positions of nodes, segments, and bodies
+    %         [VelocityAtProbes,ForcesOnBodies] = run_starccm(xyzProbes,xyzBody,Mooring);
+            [probes,rotors] = run_starccm(probes,rotors,Mooring);
+
+
+
+            Mooring.VelocityAtProbes = [probes.velX probes.velY probes.velZ];
+            Mooring.ForcesOnBodies = [rotors.thrust rotors.torque];
+
+            % Repeat static equilibrium calculation using fluid velocity at line
+            % segment centers and non-turbine body COMs given in VelocityAtProbes 
+            % to find drag on line segments and buoys, and forces on turbines
+            % given in ForcesOnBodies.
+            % Drag on turbines is already accounted for in ForcesOnBodies, gravity and buoyancy is not.
+            % Restart the mooring model now with velocities/forces/moments sovled from the CFD model
+
+            [qStaticNext,err,data] = UWMDNewton(@EvaluateStaticPhi,qStatic);
+
+            % compute a convergence criteria
+            if norm(qStaticNext - qStatic) < Mooring.OptionsCFD.CFDtol
+                qStatic = qStaticNext;
+                break
+            end
             qStatic = qStaticNext;
-            break
         end
-        qStatic = qStaticNext;
     end
     
     fprintf('\n Mooring and CFD coupling iterations have completed! :O\n')

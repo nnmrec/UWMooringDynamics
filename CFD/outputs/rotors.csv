@@ -1,3 +1,8 @@
 name,table,rotor_rpm,x,y,z,nx,ny,nz,rotor_radius,hub_radius,rotor_thick
+<<<<<<< HEAD
 Turbine1,Mezzanine,5.33638,13.5114,30,26.8977,1,0,0,12.5,0,2
 Turbine2,Mezzanine,4.15015,123.836,30,29.6792,1,0,0,12.5,0,2
+=======
+Turbine1,Mezzanine,9.2,17.4587,30,7.43643,1,0,0,12.5,0,2
+Turbine2,Mezzanine,9.2,115.314,30,11.2118,1,0,0,12.5,0,2
+>>>>>>> 46d0213aa06966e99c343ec7fc8c71a6b4676022
