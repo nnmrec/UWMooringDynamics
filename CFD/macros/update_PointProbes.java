@@ -37,23 +37,6 @@ public class update_PointProbes extends StarMacro {
           ((Units) simulation_0.getUnitsManager().getObject("m"));
 
 
-        // extract the plot to file
-        // MonitorPlot monitorPlot_0 = 
-        //   ((MonitorPlot) simulation_0.getPlotManager().getPlot("probes"));
-
-        // monitorPlot_0.export(resolvePath(path2), ",");
-
-
-        // // extract the table to file
-        // // NOTE: the exported file does not put the names in same order as the input files! How can they be sorted???
-        // XyzInternalTable xyzInternalTable_0 = 
-        //   ((XyzInternalTable) simulation_0.getTableManager().getTable("extract-Point-Probes"));
-        
-        // xyzInternalTable_0.extract();
-
-        // xyzInternalTable_0.export(resolvePath(path2), ",");
-
-
         // now read the updated coordinate file (written by "mooring model" code) and update probe coordinates
         File f = new File(path1);
         try {

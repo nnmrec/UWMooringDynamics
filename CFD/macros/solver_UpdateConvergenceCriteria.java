@@ -17,7 +17,7 @@ public class solver_UpdateConvergenceCriteria extends StarMacro {
 // USER INPUTS (ACTUALLLY THIS IS EDITED BY A MATLAB SCRIPT "updateConvergenceCriteria.m", change the values in Matlab instead, do not bother editing these values)
 //
 // boolean             firstTime 	     	    = false;
-static final int    iter_max                = 1000;
+static final int    iter_max                = 2000;
 static final double limit_continuity        = 1e-6;
 // maybe later can include some kinda of criteria for the Adaptive-Mesh-Refinement
 

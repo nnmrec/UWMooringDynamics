@@ -8,7 +8,8 @@ ext="*.jpg"
 # ext="*.png"
 
 # execute from within the directory of images
-cd ../outputs/scenes/
+# cd ../outputs/scenes/
+cd outputs/scenes/
 
 echo "testing"
 

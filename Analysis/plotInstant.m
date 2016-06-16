@@ -1,17 +1,11 @@
 function plotInstant(Y,fps,instant)
 %Y: Value of displacement variables (rows) at each time step (columns)
 
-global Mooring
+global Mooring               
 
 
-if ~Mooring.OptionsCFD.graphics
-     % skip making any figures because supercomputers do not run in
-     % graphics mode
-     return
-end
-
-
-
+%%
+hAx1 = subplot(2,1,1);
 
 hold off
 
@@ -48,7 +42,7 @@ for j = 1:Num_Line
         plot3([LineStart0(1);p(pCount:3:pCount+3*(Num_Segments(j)-2));LineEnd0(1)],...
             [LineStart0(2);p(pCount+1:3:pCount+3*(Num_Segments(j)-2)+1);LineEnd0(2)],...
             [LineStart0(3);p(pCount+2:3:pCount+3*(Num_Segments(j)-2)+2);LineEnd0(3)],...
-            '-ko','LineWidth',1,'MarkerSize',7);
+            '-ko','LineWidth',1,'MarkerSize',3);
         hold on
         pCount = pCount + 3*(Num_Segments(j)-1);
     else
@@ -58,18 +52,44 @@ for j = 1:Num_Line
     end
 end
 
-axis equal
-xlabel('x (m)')
-ylabel('y (m)')
-zlabel('z (m)')
-view(0,0)
-grid on
+
 for j = 1:Num_Body
     pGlobal = trans(p(6*(j-1)+1:6*j),pBody(:,3*(j-1)+1:3*j));
     pMap = map(pGlobal);
     plot3(pMap(:,1),pMap(:,2),pMap(:,3),'LineWidth',2);
 end
+
+
+axis equal
 axis tight
+grid on
+box on
+xlabel('x (m)')
+ylabel('y (m)')
+zlabel('z (m)')
+axis([-50 200 -50 100 0 60])
+view(0,0)
 %text(-20,21,32.5,['\fontname{times}Time = ',num2str(instant,'%5.2f'),' s'],'FontSize',18)
 
-draw now
+
+
+%% same as the other subplot, copy it and change the view
+% hAx2 = subplot(2,2,2);
+hAx2 = subplot(2,1,2);
+cla
+copyobj(allchild(hAx1),hAx2);
+
+axis equal
+axis tight
+grid on
+box on
+xlabel('x (m)')
+ylabel('y (m)')
+zlabel('z (m)')
+axis([-50 200 -50 100 0 60])
+view(0,90)
+
+
+%%
+drawnow
+

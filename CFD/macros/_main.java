@@ -90,6 +90,8 @@ public class _main extends StarMacro {
     new StarScript(getActiveSimulation(),   new java.io.File(resolvePath("physics_SST_KOmega.java"))).play();
 
     new StarScript(getActiveSimulation(),   new java.io.File(resolvePath("parts_RegionsBoundaryConditions.java"))).play();
+
+    new StarScript(getActiveSimulation(),   new java.io.File(resolvePath("update_RegionsBoundaryConditions.java"))).play();
     
     new StarScript(getActiveSimulation(),   new java.io.File(resolvePath("mesh_Background_Polyhedral.java"))).play();
 
@@ -104,7 +106,7 @@ public class _main extends StarMacro {
     // create any useful field functions
     new StarScript(getActiveSimulation(),   new java.io.File(resolvePath("fieldFunction_TurbulenceIntensity.java"))).play();
 
-   // create any other derived parts used for scenes
+    // create any other derived parts used for scenes
     new StarScript(getActiveSimulation(),   new java.io.File(resolvePath("parts_Create_LineProbes.java"))).play();
 
     // create some scenes
