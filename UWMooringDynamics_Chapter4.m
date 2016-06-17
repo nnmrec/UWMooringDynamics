@@ -265,6 +265,7 @@ saveas(gcf, ['Outputs' filesep 'model_' Mooring.casename '_final_slackwater'], '
 
 % solve for the "velocity profile" case
 Mooring.environment.StreamVelocity = @UniformVelocity;
+% Mooring.environment.StreamVelocity = Mooring.environment.InletVelocity;
 [qStatic_current,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
 plotInstant(qStatic_current,1,0);
 saveas(gcf, ['Outputs' filesep 'model_' Mooring.casename '_final_watercurrent'], 'png')
@@ -280,15 +281,14 @@ if Mooring.CFD
                    Mooring.environment.RampVel : ...
                    Mooring.environment.InletVelocity(1);
                    
+    qStatic = q0;
     for j = 1:numel(inflow_speed)        
 
         % set the ramp-up the inflow velocity for the mooring
-        Mooring.VelocityAtProbes = [inflow_speed(j);0;0];
-        % must abide by the StreamVelocity
-%         Mooring.environment.StreamVelocity = @(x,y,z,t) [inflow_speed(j);0;0];
+        Mooring.environment.StreamVelocity = [inflow_speed(j);0;0];
         
         % initialize by running the mooring model at the ramp velocity (with a uniform velocity profile)
-        [qStatic,err,data] = UWMDNewton(@EvaluateStaticPhi,qStatic_slackwater);       
+        [qStatic,err,data] = UWMDNewton(@EvaluateStaticPhi,qStatic);       
         plotInstant(qStatic,1,0);
         saveas(gcf, ['Outputs' filesep 'model_' Mooring.casename '__Inflow_' num2str(j)], 'png')
              
