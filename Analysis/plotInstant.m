@@ -1,4 +1,4 @@
-function plotInstant(Y,fps,instant)
+function hFig = plotInstant(Y,fps,instant)
 %Y: Value of displacement variables (rows) at each time step (columns)
 
 global Mooring               
@@ -7,6 +7,8 @@ if ~Mooring.OptionsCFD.graphics
     % need to disable graphics when running in console mode
     set(0,'DefaultFigureVisible','off')
 end
+
+hFig = figure;
 
 %%
 hAx1 = subplot(2,1,1);

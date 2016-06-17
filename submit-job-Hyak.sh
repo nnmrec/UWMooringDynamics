@@ -26,11 +26,11 @@
 
 ## WALLTIME (defaults to 1 hour, always specify for longer jobs)
 ## --------------------------------------------------------
-#PBS -l walltime=00:30:00
+#PBS -l walltime=01:02:00
 
 ## LOG the (stderr and stdout) job output in the directory
 ## --------------------------------------------------------
-#PBS -j oe -o /gscratch/fluids/danny
+#PBS -j oe -o .
 
 ## EMAIL to send when job is aborted, begins, and terminates
 ## --------------------------------------------------------
@@ -48,14 +48,17 @@ pwd
 
 
 ## LOAD modules needed
-module load contrib/starccm_11.02.010-R8
+echo 'loading modules Matlab and STAR-CCM+:'
 module load matlab_2015b
+module load contrib/starccm_11.02.010-R8
 
 
 ## RUN my simulation file in batch mode from an interactive session on Hyak
-matlab -nodisplay -nojvm < UWMooringDynamics_Chapter4.m
+#matlab -nodisplay -nojvm < UWMooringDynamics_Chapter4.m
+matlab -nodesktop -nosplash < UWMooringDynamics_Chapter4.m 2>&1 | tee log.mooring
 
 
 ## FINAL REPORT
 echo ' '
 echo 'all has finished, job should stop now'
+echo 'have a nice day'

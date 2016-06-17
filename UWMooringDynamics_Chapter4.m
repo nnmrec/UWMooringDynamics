@@ -254,21 +254,21 @@ fprintf('\nSolving initial equilibrium position...\n')
 
 % initial condition
 q0 = [Mooring.q0;Mooring.lambda0;Mooring.mu0;Mooring.nu0];
-plotInstant(q0,1,0);
-saveas(gcf, ['Outputs' filesep 'model_' Mooring.casename '_initial'], 'png')
+hFig = plotInstant(q0,1,0);
+saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_initial'], 'png')
 
 % solve for the "slackwater" case
 Mooring.environment.StreamVelocity = @ZeroVelocity;
 [qStatic_slackwater,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
-plotInstant(qStatic_slackwater,1,0);
-saveas(gcf, ['Outputs' filesep 'model_' Mooring.casename '_final_slackwater'], 'png')
+hFig = plotInstant(qStatic_slackwater,1,0);
+saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_final_slackwater'], 'png')
 
 % solve for the "velocity profile" case
 Mooring.environment.StreamVelocity = @UniformVelocity;
 % Mooring.environment.StreamVelocity = Mooring.environment.InletVelocity;
 [qStatic_current,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
-plotInstant(qStatic_current,1,0);
-saveas(gcf, ['Outputs' filesep 'model_' Mooring.casename '_final_watercurrent'], 'png')
+hFig = plotInstant(qStatic_current,1,0);
+saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_final_watercurrent'], 'png')
 
 
 %% CFD Coupling
@@ -289,8 +289,8 @@ if Mooring.CFD
         
         % initialize by running the mooring model at the ramp velocity (with a uniform velocity profile)
         [qStatic,err,data] = UWMDNewton(@EvaluateStaticPhi,qStatic);       
-        plotInstant(qStatic,1,0);
-        saveas(gcf, ['Outputs' filesep 'model_' Mooring.casename '__Inflow_' num2str(j)], 'png')
+        hFig = plotInstant(qStatic,1,0);
+        saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '__Inflow_' num2str(j)], 'png')
              
         
         % run CFD to compute velocities and forces, iterate between
@@ -327,8 +327,8 @@ if Mooring.CFD
             end
             
             % save figures at mooring/CFD iteration checkpoint
-            plotInstant(qStaticNext,1,0);
-            saveas(gcf, ['Outputs' filesep 'model_' Mooring.casename '__IterCFD_' num2str(i) '__Inflow_' num2str(j)], 'png')
+            hFig = plotInstant(qStaticNext,1,0);
+            saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '__IterCFD_' num2str(i) '__Inflow_' num2str(j)], 'png')
                       
             % compute a convergence criteria
             if norm(qStaticNext - qStatic) < Mooring.OptionsCFD.CFDtol
@@ -345,8 +345,8 @@ if Mooring.CFD
     
     fprintf('\n Mooring and CFD coupling iterations have completed! \n')
     
-    plotInstant(qStatic,1,0);
-    saveas(gcf, ['Outputs' filesep 'model_' Mooring.casename '_finalPosition'], 'png')
+    hFig = plotInstant(qStatic,1,0);
+    saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_finalPosition'], 'png')
 end
 
 % =========================================================================
@@ -375,3 +375,9 @@ end
 %UWMD_Main_Phase5
 
 % =========================================================================
+
+% =========================================================================
+%% shut down
+if Mooring.OptionsCFD.runOnHPC
+    quit
+end
