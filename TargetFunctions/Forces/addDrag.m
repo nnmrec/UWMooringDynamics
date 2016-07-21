@@ -31,12 +31,17 @@ if ~Mooring.CFD % No CFD coupling
     end
 else % Yes CFD coupling
     VelocityAtProbes = Mooring.VelocityAtProbes;
-    if size(VelocityAtProbes,2) <= 1 % First equilibrium calculation, no CFD data yet
+    if isempty(VelocityAtProbes) % First equilibrium calculation, no CFD data yet, abide by the StreamVelocity (or ramp velocity)
         for i = 1:Num_Body
             BodyIndex = bodies(i).RowIndices;
-            Ux = VelocityAtProbes(1); % inlet x-velocity
-            Uy = VelocityAtProbes(2); % inlet y-velocity
-            Uz = VelocityAtProbes(3); % inlet z-velocity
+            if isa(Mooring.environment.StreamVelocity, 'function_handle')
+               % use the anonymous function for velocity profile
+                [Ux,Uy,Uz] = findVelocity(q(BodyIndex(1)),q(BodyIndex(2)),q(BodyIndex(3)),tNum);
+            else
+               Ux = Mooring.environment.StreamVelocity(1);
+               Uy = Mooring.environment.StreamVelocity(2);
+               Uz = Mooring.environment.StreamVelocity(3);
+            end
             A = EulerAngles(q(BodyIndex(4)),q(BodyIndex(5)),q(BodyIndex(6)));
             u1 = A\([Ux;Uy;Uz] - f(BodyIndex(1:3))); % Relative fluid velocity at body COM (body-fixed frame)
 
@@ -87,15 +92,19 @@ for i = 1:Num_Line
         
         if ~Mooring.CFD
             [Ux,Uy,Uz] = findVelocity(xCOM,yCOM,zCOM,tNum);
-        elseif size(VelocityAtProbes,2) > 1
+        elseif ~isempty(VelocityAtProbes)             % CFD data is available
             Ux = VelocityAtProbes(LineProbeIndex,1);
             Uy = VelocityAtProbes(LineProbeIndex,2);
             Uz = VelocityAtProbes(LineProbeIndex,3);
             LineProbeIndex = LineProbeIndex + 1;
-        else
-            Ux = VelocityAtProbes(1);
-            Uy = VelocityAtProbes(2);
-            Uz = VelocityAtProbes(3);
+        else                                            % CFD data is not available, abide by the StreamVelocity (or ramp velocity)
+            if isa(Mooring.environment.StreamVelocity, 'function_handle')
+                [Ux,Uy,Uz] = findVelocity(xCOM,yCOM,zCOM,tNum);
+            else
+                Ux = VelocityAtProbes(1);
+                Uy = VelocityAtProbes(2);
+                Uz = VelocityAtProbes(3);
+            end
         end
         
         u = [Ux;Uy;Uz] - vCOM; % Relative stream velocity at COM of segment
@@ -130,15 +139,19 @@ for i = 1:Num_Line
         
         if ~Mooring.CFD
             [Ux,Uy,Uz] = findVelocity(COM(1),COM(2),COM(3),tNum);
-        elseif size(VelocityAtProbes,2) > 1
+        elseif ~isempty(VelocityAtProbes)             % CFD data is available
             Ux = VelocityAtProbes(LineProbeIndex,1);
             Uy = VelocityAtProbes(LineProbeIndex,2);
             Uz = VelocityAtProbes(LineProbeIndex,3);
             LineProbeIndex = LineProbeIndex + 1;
-        else
-            Ux = VelocityAtProbes(1);
-            Uy = VelocityAtProbes(2);
-            Uz = VelocityAtProbes(3);
+        else                                            % CFD data was not available, abide by the StreamVelocity (or ramp velocity)
+            if isa(Mooring.environment.StreamVelocity, 'function_handle')
+                [Ux,Uy,Uz] = findVelocity(COM(1),COM(2),COM(3),tNum);
+            else
+                Ux = Mooring.environment.StreamVelocity(1);
+                Uy = Mooring.environment.StreamVelocity(2);
+                Uz = Mooring.environment.StreamVelocity(3);
+            end
         end
         u = [Ux;Uy;Uz] - vCOM;
 
@@ -170,15 +183,19 @@ for i = 1:Num_Line
             COM = (q(InternalNodes(j+1).RowIndices) - q(InternalNodes(j).RowIndices))/2 + q(InternalNodes(j).RowIndices);
             if ~Mooring.CFD
                 [Ux,Uy,Uz] = findVelocity(COM(1),COM(2),COM(3),tNum);
-            elseif size(VelocityAtProbes,2) > 1
+            elseif ~isempty(VelocityAtProbes)             % CFD data is available
                 Ux = VelocityAtProbes(LineProbeIndex,1);
                 Uy = VelocityAtProbes(LineProbeIndex,2);
                 Uz = VelocityAtProbes(LineProbeIndex,3);
                 LineProbeIndex = LineProbeIndex + 1;
-            else
-                Ux = VelocityAtProbes(1);
-                Uy = VelocityAtProbes(2);
-                Uz = VelocityAtProbes(3);
+            else                                            % CFD data is not available, abide by the StreamVelocity (or ramp velocity)
+                if isa(Mooring.environment.StreamVelocity, 'function_handle')
+                    [Ux,Uy,Uz] = findVelocity(COM(1),COM(2),COM(3),tNum);
+                else
+                    Ux = Mooring.environment.StreamVelocity(1);
+                    Uy = Mooring.environment.StreamVelocity(2);
+                    Uz = Mooring.environment.StreamVelocity(3);
+                end
             end
             u = [Ux;Uy;Uz] - vCOM;
             uTan = u(1)*segUnit(1) + u(2)*segUnit(2) + u(3)*segUnit(3);
@@ -208,15 +225,20 @@ for i = 1:Num_Line
         
         if ~Mooring.CFD
             [Ux,Uy,Uz] = findVelocity(COM(1),COM(2),COM(3),tNum);
-        elseif size(VelocityAtProbes,2) > 1
+        elseif ~isempty(VelocityAtProbes)             % CFD data is available
             Ux = VelocityAtProbes(LineProbeIndex,1);
             Uy = VelocityAtProbes(LineProbeIndex,2);
             Uz = VelocityAtProbes(LineProbeIndex,3);
             LineProbeIndex = LineProbeIndex + 1;
-        else
-            Ux = VelocityAtProbes(1);
-            Uy = VelocityAtProbes(2);
-            Uz = VelocityAtProbes(3);
+        else                                            % CFD data was not available, abide by the StreamVelocity (or ramp velocity)
+            if isa(Mooring.environment.StreamVelocity, 'function_handle')
+                [Ux,Uy,Uz] = findVelocity(COM(1),COM(2),COM(3),tNum);
+            else
+                Ux = Mooring.environment.StreamVelocity(1);
+                Uy = Mooring.environment.StreamVelocity(2);
+                Uz = Mooring.environment.StreamVelocity(3);
+                
+            end
         end
         u = [Ux;Uy;Uz] - vCOM;
 
@@ -245,3 +267,4 @@ global Mooring
 StreamVelocityFunction = Mooring.environment.StreamVelocity; % Designates a function handle
 [Ux,Uy,Uz] = StreamVelocityFunction(x,y,z,t);
 end
+

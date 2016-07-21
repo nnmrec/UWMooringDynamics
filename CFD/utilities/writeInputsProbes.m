@@ -6,6 +6,7 @@ function [probes] = writeInputsProbes(filesIO,probes)
 probes_vars = {'ProbeName','x', 'y','z'};
 probes_data = horzcat(probes.names, num2cell(probes.xyz));
 P           = vertcat(probes_vars, probes_data);
+
 % write to CSV file
 f = CsvWriter(filesIO.fileIn_probes,'delimiter',',');
 f.append(P);

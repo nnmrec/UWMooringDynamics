@@ -8,22 +8,22 @@ clearvars
 fclose('all');
 clc
 
+% USER SELECT INPUT FILE
+MooringModel = 'MezzanineConcept1Reduced';
+% MooringModel = 'configSimple';
+% MooringModel = 'RamanNair_Baddour_2001_TestProblem3Multi';
+
+% 
 addpath(genpath([pwd filesep 'Analysis']));
 addpath(genpath([pwd filesep 'CFD']));
 addpath(genpath([pwd filesep 'CommonFunctions']));
 addpath(genpath([pwd filesep 'ConfigurationFiles']));
 addpath(genpath([pwd filesep 'Development']));
-addpath(genpath([pwd filesep 'Documentation']));
 addpath(genpath([pwd filesep 'ModelConstruction']));
 addpath(genpath([pwd filesep 'Solvers']));
 addpath(genpath([pwd filesep 'TargetFunctions']));
 
-MooringModel = 'MezzanineConcept1Reduced';
-% MooringModel = 'configSimple';
-% MooringModel = 'RamanNair_Baddour_2001_TestProblem3Multi';
-
 %% General System Parameters, set to default values
-%  everything is fully initialized at this point?
 global Mooring
 Mooring = struct('casename',MooringModel, ...
     't0',0,...
@@ -43,9 +43,6 @@ Mooring = struct('casename',MooringModel, ...
     'lambda0',[],...
     'SlacklineConstraint',false);
 
-% are Mooring.encironment variables not already set in the ConfigurationFiles?
-% Here we are setting defaults. The configuration file is executed later
-% and these values get overwritten if they are defined in the config file
 Mooring.environment = struct('grav',9.81,...
     'rho_f',1020,...
     'StreamVelocity',@ZeroVelocity);
@@ -72,12 +69,23 @@ end
 if exist('rho_f','var')
     Mooring.environment.rho_f = rho_f;
 end
+if exist('DynamicModel','var')
+    Mooring.DynamicModel = DynamicModel;
+end
 if exist('StreamVelocity','var')
     Mooring.environment.StreamVelocity = StreamVelocity;
 end
+if exist('InletVelocity','var')
+    Mooring.environment.InletVelocity = InletVelocity;
+end
+if exist('RampVel','var')
+    Mooring.environment.RampVel = RampVel;
+end
 if exist('CFD','var')
     Mooring.CFD = CFD;
-    Mooring.VelocityAtProbes = InletVelocity;
+%     Mooring.VelocityAtProbes = InletVelocity;
+%     Mooring.VelocityAtProbes = StreamVelocity;
+    Mooring.VelocityAtProbes = [];
 end
 if exist('SlacklineConstraint','var')
     Mooring.SlacklineConstraint = SlacklineConstraint;
@@ -244,111 +252,106 @@ fprintf('     Done!\n')
 %% PART IV: Solve equilibrium equations ===================================
 fprintf('\nSolving initial equilibrium position...\n')
 
+% initial condition
 q0 = [Mooring.q0;Mooring.lambda0;Mooring.mu0;Mooring.nu0];
-plotInstant(q0,1,0);
-drawnow
-[qStatic,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
-if ~err
-    fprintf('     Done!\n')
-%     IsItGood = input('\nUse this static equilibrium position? (Y/N)\n\n---->     ','s');
-%     if strcmpi(IsItGood(1),'n')
-%         fprintf('\nOk, try again\n\n')
-%         return
-%     end
-    Mooring.qStatic = qStatic;
-else
-    fprintf('\nUnable to find initial equilibrium position =(\n')
-    return
-end
+hFig = plotInstant(q0,1,0);
+saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_initial'], 'png')
+
+% solve for the "slackwater" case
+Mooring.environment.StreamVelocity = @ZeroVelocity;
+[qStatic_slackwater,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
+hFig = plotInstant(qStatic_slackwater,1,0);
+saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_final_slackwater'], 'png')
+
+% solve for the "velocity profile" case
+Mooring.environment.StreamVelocity = @UniformVelocity;
+% Mooring.environment.StreamVelocity = Mooring.environment.InletVelocity;
+[qStatic_current,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
+hFig = plotInstant(qStatic_current,1,0);
+saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_final_watercurrent'], 'png')
+
 
 %% CFD Coupling
 if Mooring.CFD
-    for j = 1:20
-%         Mooring.InletVelocity = [(j-1)/10;0;0];
+    % get directories and filenames used for CFD stuff
+    Mooring.OptionsCFD.filesIO = init_cfd();
+        
+    % when using CFD, can optionally ramp up the inlet velocity
+    inflow_speed = Mooring.environment.RampVel : ...
+                   Mooring.environment.RampVel : ...
+                   Mooring.environment.InletVelocity(1);
+                   
+    qStatic = q0;
+    for j = 1:numel(inflow_speed)        
 
+        % set the ramp-up the inflow velocity for the mooring
+        Mooring.environment.StreamVelocity = [inflow_speed(j);0;0];
+        
+        % initialize by running the mooring model at the ramp velocity (with a uniform velocity profile)
+        [qStatic,err,data] = UWMDNewton(@EvaluateStaticPhi,qStatic);       
+        hFig = plotInstant(qStatic,1,0);
+        saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '__Inflow_' num2str(j)], 'png')
+             
+        
+        % run CFD to compute velocities and forces, iterate between
+        % CFD and running the mooring model until posititions stabalize
         for i = 1:Mooring.OptionsCFD.NumCFDIterations
-            % parse the solution of the mooring code, to find
-            % xyzProbes: table with x, y, z positions of line segment centers
-            %   xyzBody: table with x, y, z positions of body COMs
+            % prepare the model configuration parameters for CFD, 
+            % parse the Mooring data structure and write inputs for the CFD code
+            [probes, rotors] = writeInputsMooringToCFD(Mooring,qStatic); 
             
-            [xyzProbes,xyzBody] = GetProbeLocations(qStatic);
-
-            % For bodies find which indicies correspond to turbines and buoy
-            % buoys: only sample 3 velocities
-            % turbines: sample 3 forces, 3 moments, and 1 inflow speed
-            ind_buoy    = find(ismember({Mooring.bodies.Type},'buoy'));
-            ind_turbine = find(ismember({Mooring.bodies.Type},'turbine'));
-
-            % point probes must be added at the buoys, and line segments
-            % append the buoy bodies onto the line segment coordinates
-            probes.xyz      = [xyzProbes; xyzBody(ind_buoy,:)];
-
-            % now come up with meaningful names for the probes
-            % list all the line segment names
-            segsPerLine = [Mooring.lines.NumSegments]';
-            names      = {Mooring.lines.Name}';
-            probesname = cell(sum([Mooring.lines.NumSegments]),1);
-            k = 1;
-            for n = 1:numel(names)
-                for m = 1:segsPerLine(n)
-                    probeName = [char(names(n)) '_' sprintf('%3.3d',m)];
-                    probesname(k) = cellstr(probeName);
-                    k = k+1;
-                end
-            end
-            % now append the buoy names after line segment names
-            bodynames    = {Mooring.bodies.Name}';
-            probes.names = [probesname; bodynames(ind_buoy)];
-
-            % get dir and filenames used for CFD stuff
-            Mooring.OptionsCFD.filesIO = init_cfd();
-
-            % need to write a CSV file of the coordiantes to create point probes
-            % WRITE the initial conditions to "input files" for the CFD model 
-            writeInputsProbes(Mooring.OptionsCFD.filesIO,probes);  % writes a file probes.csv in the CFD output directory
-
-            % now get the names and coordinates of the turbine type bodies
-            rotors.xyz = xyzBody(ind_turbine,:);
-            rotors.names = bodynames(ind_turbine);        
-            rotors.data = horzcat(rotors.names, ...
-                                  Mooring.Turbines.data_cfd(:,1:2), ...
-                                  num2cell(rotors.xyz), ...
-                                  Mooring.Turbines.data_cfd(:,3:8));
-
-            % turbines have their own way of reporting the forces/moments/inflowspeed
-            % need to write a CSV file with coordinates of turbines
-            writeInputsRotors(Mooring.OptionsCFD.filesIO,rotors);  % writes a file rotors.csv in the CFD output directory
-
+            % write updated (ramped) inflow speed to CFD files
+            writeCFD_BC(Mooring,inflow_speed(j));
+                
             % run the CFD solver with the most recent positions of nodes, segments, and bodies
-    %         [VelocityAtProbes,ForcesOnBodies] = run_starccm(xyzProbes,xyzBody,Mooring);
-            [probes,rotors] = run_starccm(probes,rotors,Mooring);
-
-
-
-            Mooring.VelocityAtProbes = [probes.velX probes.velY probes.velZ];
-            Mooring.ForcesOnBodies = [rotors.thrust rotors.torque];
+            [probes,rotors] = run_starccm(probes,rotors,Mooring);  
+            % NOTE: this runs _main.java each iteration which is wasteful
+            %       better if run _main on 1st iteration, then only need to
+            %       run the "update" macros for 2nd iteration onwards
 
             % Repeat static equilibrium calculation using fluid velocity at line
             % segment centers and non-turbine body COMs given in VelocityAtProbes 
-            % to find drag on line segments and buoys, and forces on turbines
-            % given in ForcesOnBodies.
+            % to find drag on line segments and buoys, and forces on turbines given in ForcesOnBodies.
             % Drag on turbines is already accounted for in ForcesOnBodies, gravity and buoyancy is not.
+            Mooring.VelocityAtProbes = [probes.velX probes.velY probes.velZ];
+            Mooring.ForcesOnBodies   = [rotors.thrust rotors.torque];
+            
+                       
             % Restart the mooring model now with velocities/forces/moments sovled from the CFD model
-
             [qStaticNext,err,data] = UWMDNewton(@EvaluateStaticPhi,qStatic);
-
+            
+            % some error checking, if needed here
+            if err
+                % fprintf(1, '\n WARNING: it seems like UWMDNewton did not converge after the CFD iteration ... continuing anyways. \n');
+                error('WARNING: it seems like UWMDNewton did not converge after the CFD iteration ... stopping. \n');
+            end
+            
+            % save figures at mooring/CFD iteration checkpoint
+            hFig = plotInstant(qStaticNext,1,0);
+            saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '__IterCFD_' num2str(i) '__Inflow_' num2str(j)], 'png')
+                      
             % compute a convergence criteria
             if norm(qStaticNext - qStatic) < Mooring.OptionsCFD.CFDtol
                 qStatic = qStaticNext;
                 break
             end
             qStatic = qStaticNext;
-        end
-    end
+            
+        end % CFD iterations
+        
+        
+    end % velocity ramping iterations
     
+    
+    fprintf('\n Mooring and CFD coupling iterations have completed! \n')
+    
+    hFig = plotInstant(qStatic,1,0);
+    saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_finalPosition'], 'png')
 end
-    
-    
+
+% =========================================================================
+%% PART VII pt half: Dynamics
+   
 if Mooring.DynamicModel
     fprintf('\nSolving dynamic model...')
     f0 = zeros(Mooring.TotalDOF,1);
@@ -372,3 +375,9 @@ end
 %UWMD_Main_Phase5
 
 % =========================================================================
+
+% =========================================================================
+%% shut down
+if Mooring.OptionsCFD.runOnHPC
+    quit
+end
