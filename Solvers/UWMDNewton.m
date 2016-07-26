@@ -28,7 +28,7 @@ for i = 1:MaxIterations
     end
     
     plotInstant(qGuess,1,0);
-%     drawnow
+    drawnow
     AllqGuess(:,i) = qGuess;
     AllPhis(:,i) = Phi;
     AllPhiNorms(i) = normPhi;

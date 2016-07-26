@@ -1,4 +1,4 @@
-function plotCFDdata(q,Probe_xyz,Rotor_xyz)
+function plotCFDdata(Probe_xyz,Rotor_xyz)
 
 VelocityScaleFactor = 5;
 ForceScaleFactor = 0.0001;
@@ -6,21 +6,11 @@ ForceScaleFactor = 0.0001;
 global Mooring
 
 VelocityAtProbes = Mooring.VelocityAtProbes*VelocityScaleFactor;
-ForcesOnTurbines_raw = Mooring.ForcesOnBodies*ForceScaleFactor;
+ForcesOnTurbines = Mooring.Thrust*ForceScaleFactor;
+MomentsOnTurbines = Mooring.Torque*ForceScaleFactor;
 
-bodies = Mooring.bodies;
-
-BodiesThatAreTurbines = find(ismember({bodies.Type},'turbine'));
-ForcesOnTurbines = zeros(size(ForcesOnTurbines_raw,1),3);
-MomentsOnTurbines = zeros(size(ForcesOnTurbines_raw,1),3);
-for i = 1:size(ForcesOnTurbines_raw,1)
-    RowIndices = bodies(BodiesThatAreTurbines(i)).RowIndices;
-    BodyOrientation = q(RowIndices(4:6));
-    A = EulerAngles(BodyOrientation(1),BodyOrientation(2),BodyOrientation(3));
-    UnitVectorAlignedWithTurbine = A*[1;0;0]; % [1;0;0] is unit vector of turbine axis in body-fixed frame
-    ForcesOnTurbines(i,:) = transpose(ForcesOnTurbines_raw(i,1)*UnitVectorAlignedWithTurbine);
-    MomentsOnTurbines(i,:) = transpose(ForcesOnTurbines_raw(i,2)*UnitVectorAlignedWithTurbine);
-end
+% bodies = Mooring.bodies;
+% BodiesThatAreTurbines = find(ismember({bodies.Type},'turbine'));
 
 hold on
 

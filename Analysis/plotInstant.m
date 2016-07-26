@@ -8,8 +8,6 @@ if ~Mooring.OptionsCFD.graphics
     set(0,'DefaultFigureVisible','off')
 end
 
-hFig = figure;
-
 %%
 hAx1 = subplot(2,1,1);
 
@@ -98,4 +96,5 @@ view(0,90)
 
 %%
 drawnow
+hFig = gcf;
 
