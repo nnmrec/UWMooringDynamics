@@ -309,22 +309,15 @@ if Mooring.CFD
             % NOTE: this runs _main.java each iteration which is wasteful
             %       better if run _main on 1st iteration, then only need to
             %       run the "update" macros for 2nd iteration onwards
-            
-            % Process rotors.thrust and rotors.torque magnitudes into
-            % vectors aliged with rotor longitudinal axes
-            
-            
-            
-            [Rotor_Thrust,Rotor_Torque] = CFDForceMagnitudeToVector(qStatic,rotors.thrust,rotors.torque);
-            
 
             % Repeat static equilibrium calculation using fluid velocity at line
             % segment centers and non-turbine body COMs given in VelocityAtProbes 
             % to find drag on line segments and buoys, and forces on turbines given in ForcesOnBodies.
             % Drag on turbines is already accounted for in ForcesOnBodies, gravity and buoyancy is not.
             Mooring.VelocityAtProbes = [probes.velX probes.velY probes.velZ];
-            Mooring.Thrust = Rotor_Thrust;
-            Mooring.Torque = Rotor_Torque;
+            [thrust_vector,torque_vector] = CFDForceMagnitudeToVector(qStatic,rotors.thrust,rotors.torque);
+            Mooring.Thrust = thrust_vector;
+            Mooring.Torque = torque_vector;
                        
             % Restart the mooring model now with velocities/forces/moments sovled from the CFD model
             [qStaticNext,err,data] = UWMDNewton(@EvaluateStaticPhi,qStatic);
