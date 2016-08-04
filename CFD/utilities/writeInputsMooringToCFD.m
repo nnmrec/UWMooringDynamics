@@ -1,10 +1,12 @@
-function [probes, rotors] = writeInputsMooringToCFD(Mooring,qStaticNext)
+function [probes, rotors] = writeInputsMooringToCFD(Mooring,qStatic)
+
+% Get unit vectors in direction of turbine flow axis from turbine orientation
+TurbineAxisUnitVectors = GetTurbineFlowAxisUnitVector(qStatic);
 
 % parse the solution of the mooring code, to find
 % xyzProbes: table with x, y, z positions of line segment centers
 %   xyzBody: table with x, y, z positions of body COMs
-
-[xyzProbes,xyzBody] = GetProbeLocations(qStaticNext);
+[xyzProbes,xyzBody] = GetProbeLocations(qStatic);
 
 % For bodies find which indicies correspond to turbines and buoy
 % buoys: only sample 3 velocities

@@ -1,5 +1,6 @@
 % X_al-Y_be-Z_gam direction cosine matrix A, Fabien Pg. 61
 function A = EulerAngles(alpha,beta,gamma)
+% (Global Frame Vector) = A*(Local Frame Vector)
 
 A11 = cos(beta)*cos(gamma);
 A12 = -cos(beta)*sin(gamma);

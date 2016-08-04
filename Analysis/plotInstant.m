@@ -78,7 +78,6 @@ view(0,0)
 
 
 %% same as the other subplot, copy it and change the view
-% hAx2 = subplot(2,2,2);
 hAx2 = subplot(2,1,2);
 cla
 copyobj(allchild(hAx1),hAx2);

@@ -257,18 +257,18 @@ q0 = [Mooring.q0;Mooring.lambda0;Mooring.mu0;Mooring.nu0];
 hFig = plotInstant(q0,1,0);
 saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_initial'], 'png')
 
-% solve for the "slackwater" case
-Mooring.environment.StreamVelocity = @ZeroVelocity;
-[qStatic_slackwater,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
-hFig = plotInstant(qStatic_slackwater,1,0);
-saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_final_slackwater'], 'png')
-
-% solve for the "velocity profile" case
-Mooring.environment.StreamVelocity = @UniformVelocity;
-% Mooring.environment.StreamVelocity = Mooring.environment.InletVelocity;
-[qStatic_current,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
-hFig = plotInstant(qStatic_current,1,0);
-saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_final_watercurrent'], 'png')
+% % solve for the "slackwater" case
+% Mooring.environment.StreamVelocity = @ZeroVelocity;
+% [qStatic_slackwater,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
+% hFig = plotInstant(qStatic_slackwater,1,0);
+% saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_final_slackwater'], 'png')
+% 
+% % solve for the "velocity profile" case
+% Mooring.environment.StreamVelocity = @UniformVelocity;
+% % Mooring.environment.StreamVelocity = Mooring.environment.InletVelocity;
+% [qStatic_current,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
+% hFig = plotInstant(qStatic_current,1,0);
+% saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_final_watercurrent'], 'png')
 
 
 %% CFD Coupling
@@ -296,6 +296,7 @@ if Mooring.CFD
         % run CFD to compute velocities and forces, iterate between
         % CFD and running the mooring model until posititions stabalize
         for i = 1:Mooring.OptionsCFD.NumCFDIterations
+            
             % prepare the model configuration parameters for CFD, 
             % parse the Mooring data structure and write inputs for the CFD code
             [probes, rotors] = writeInputsMooringToCFD(Mooring,qStatic); 
