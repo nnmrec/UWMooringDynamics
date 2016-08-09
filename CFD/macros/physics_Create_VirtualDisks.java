@@ -301,7 +301,8 @@ simulation_0.println("names(i) = " + names.get(i));
 
 		    ((VdmAverageInflowPlaneMethod) vdmInflowSpecification_0.getActiveInflowMethod()).getRadius().setValue(rotor_radius[i]);
 
-		    ((VdmAverageInflowPlaneMethod) vdmInflowSpecification_0.getActiveInflowMethod()).getOffset().setValue(-1*4*rotor_radius[i]);
+		    // ((VdmAverageInflowPlaneMethod) vdmInflowSpecification_0.getActiveInflowMethod()).getOffset().setValue(-1*4*rotor_radius[i]);
+		    ((VdmAverageInflowPlaneMethod) vdmInflowSpecification_0.getActiveInflowMethod()).getOffset().setValue(-1*0.33*rotor_radius[i]);
     
 		    // PropellerInflowVelocityPlane propellerInflowVelocityPlane_2 = 
 		    //   virtualDisk_0.getComponentsManager().get(PropellerInflowVelocityPlane.class);
@@ -737,7 +738,7 @@ simulation_0.println("names(i) = " + names.get(i));
 		  simulation_0.getUnitsManager().getPreferredUnits(new IntVector(new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
 		Region region_0 = 
-		  simulation_0.getRegionManager().getRegion("Block");
+		  simulation_0.getRegionManager().getRegion("Region");
 
 		for (int i = 0; i < nVirtualDisks; i++) {
 

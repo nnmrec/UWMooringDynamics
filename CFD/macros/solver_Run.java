@@ -29,7 +29,6 @@ public class solver_Run extends StarMacro {
     Simulation simulation_0 = 
       getActiveSimulation();
 
-
     // run the simulation (this will restart from solution of previous known iteration)
     simulation_0.getSimulationIterator().run();
 

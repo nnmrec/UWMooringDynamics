@@ -37,7 +37,7 @@ public class update_VirtualDisks extends StarMacro {
           physicsContinuum_0.getModelManager().getModel(VirtualDiskModel.class);
 
         Region region_0 =
-                simulation_0.getRegionManager().getRegion("Block");
+                simulation_0.getRegionManager().getRegion("Region");
 
         Units units_0 = 
           ((Units) simulation_0.getUnitsManager().getObject("m"));

@@ -24,7 +24,7 @@ public class scene_TurbulenceIntensityLocal extends StarMacro {
       getActiveSimulation();
 
     Region region_0 = 
-      simulation_0.getRegionManager().getRegion("Block");
+      simulation_0.getRegionManager().getRegion("Region");
 
 
 
@@ -69,12 +69,15 @@ public class scene_TurbulenceIntensityLocal extends StarMacro {
     partDisplayer_0.getInputParts().setQuery(null);
 
     PlaneSection planeSection_0 = 
+      // ((PlaneSection) simulation_0.getPartManager().getObject("plane_middepth"));
       ((PlaneSection) simulation_0.getPartManager().getObject("plane-xy"));
 
     PlaneSection planeSection_1 = 
+      // ((PlaneSection) simulation_0.getPartManager().getObject("plane_streamwise"));
       ((PlaneSection) simulation_0.getPartManager().getObject("plane-xz"));
 
     PlaneSection planeSection_2 = 
+      // ((PlaneSection) simulation_0.getPartManager().getObject("plane_crossflow"));
       ((PlaneSection) simulation_0.getPartManager().getObject("plane-yz"));
 
     scalarDisplayer_0.getInputParts().setObjects(planeSection_0, planeSection_1, planeSection_2);

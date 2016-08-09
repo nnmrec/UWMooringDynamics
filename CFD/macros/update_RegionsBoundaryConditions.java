@@ -12,8 +12,6 @@ import java.util.*;
 import java.util.logging.*;
 import star.common.*;
 import star.base.neo.*;
-import star.vis.*;
-import star.turbulence.*;
 import star.flow.*;
 
 public class update_RegionsBoundaryConditions extends StarMacro {
@@ -27,26 +25,24 @@ public class update_RegionsBoundaryConditions extends StarMacro {
 
     public void execute() {
 
-        Simulation simulation_0 = getActiveSimulation();
+        Simulation simulation_0 = 
+      getActiveSimulation();
 
-        Region region_0 =
-                simulation_0.getRegionManager().getRegion("Block");
+    PhysicsContinuum physicsContinuum_0 = 
+      ((PhysicsContinuum) simulation_0.getContinuumManager().getContinuum("Physics 1"));
 
-        Units units_0 = 
-          ((Units) simulation_0.getUnitsManager().getObject("m"));
+    VelocityProfile velocityProfile_0 = 
+      physicsContinuum_0.getInitialConditions().get(VelocityProfile.class);
 
-        Boundary boundary_0 = 
-          region_0.getBoundaryManager().getBoundary("Inlet");
+    Region region_0 = 
+      simulation_0.getRegionManager().getRegion("Region");
 
-        VelocityProfile velocityProfile_0 = 
-          boundary_0.getValues().get(VelocityProfile.class);
+    Boundary boundary_0 = 
+      region_0.getBoundaryManager().getBoundary("Block.Inlet");
 
+    VelocityProfile velocityProfile_1 = 
+      boundary_0.getValues().get(VelocityProfile.class);
 
-        // TurbulenceIntensityProfile turbulenceIntensityProfile_0 = 
-        //   boundary_0.getValues().get(TurbulenceIntensityProfile.class);
-
-        // TurbulentLengthScaleProfile turbulentLengthScaleProfile_0 = 
-        //   boundary_0.getValues().get(TurbulentLengthScaleProfile.class);
 
 
         // now read the updated coordinate file (written by "mooring model" code) and update probe coordinates
@@ -71,11 +67,9 @@ public class update_RegionsBoundaryConditions extends StarMacro {
 
 
                 velocityProfile_0.getMethod(ConstantVectorProfileMethod.class).getQuantity().setComponents(value, 0.0, 0.0);
+                velocityProfile_1.getMethod(ConstantVectorProfileMethod.class).getQuantity().setComponents(value, 0.0, 0.0);
 
-                // turbulenceIntensityProfile_0.getMethod(ConstantScalarProfileMethod.class).getQuantity().setValue(0.11);
-                // turbulentLengthScaleProfile_0.getMethod(ConstantScalarProfileMethod.class).getQuantity().setValue(3.333);
-
-            } // end while
+            }
 
 
         // save it
@@ -88,6 +82,6 @@ public class update_RegionsBoundaryConditions extends StarMacro {
 
 
 
-  } // end execute0()
-} // end public class
+  }
+}
 

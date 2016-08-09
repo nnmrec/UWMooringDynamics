@@ -31,7 +31,7 @@ public class update_PointProbes extends StarMacro {
         Simulation simulation_0 = getActiveSimulation();
 
         Region region_0 =
-                simulation_0.getRegionManager().getRegion("Block");
+                simulation_0.getRegionManager().getRegion("Region");
 
         Units units_0 = 
           ((Units) simulation_0.getUnitsManager().getObject("m"));

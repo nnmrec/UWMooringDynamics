@@ -31,7 +31,7 @@ public class parts_Create_PointProbes extends StarMacro {
         Simulation simulation_0 = getActiveSimulation();
 
         Region region_0 =
-                simulation_0.getRegionManager().getRegion("Block");
+                simulation_0.getRegionManager().getRegion("Region");
 
 
         File f = new File(path0);

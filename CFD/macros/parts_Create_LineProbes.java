@@ -27,7 +27,7 @@ public class parts_Create_LineProbes extends StarMacro {
       simulation_0.getUnitsManager().getPreferredUnits(new IntVector(new int[] {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
     Region region_0 = 
-      simulation_0.getRegionManager().getRegion("Block");
+      simulation_0.getRegionManager().getRegion("Region");
 
 
 
