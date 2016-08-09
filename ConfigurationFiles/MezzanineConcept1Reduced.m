@@ -11,8 +11,8 @@ perspective = [105 10]; % [Azimuth, Elevation]
 DynamicModel = false;
 SlacklineConstraint = false;
 CFD = true;                                                 % use CFD to compute forces and velocities on mooring elements
-InletVelocity = [3.0; 0; 0];                                % the final inflow speed
-RampVel = 3.0;                                              % velocity increment until final speed (set to same as InletVelocity to skip the ramping steps)
+InletVelocity = [2.0; 0; 0];                                % the final inflow speed
+RampVel = 2.0;                                              % velocity increment until final speed (set to same as InletVelocity to skip the ramping steps)
 
 % CFD options
 OptionsCFD.graphics         = true;                         % turn off all matlab graphics and prompts (hide in background), when running on HPC
@@ -21,7 +21,7 @@ OptionsCFD.AMR              = false;                        % Use Adaptive Mesh 
 OptionsCFD.nCPUs            = 16;                           % number of CPU cores to run in parallel (check that it matches your PBS submit job script)
 OptionsCFD.control          = 'RPM';                        % choose 'RPM' for rotor speed control.  choose 'TSR' for local tip-speed-ratio control
 OptionsCFD.nUpdateRPM       = 1;                            % number of inner loops to update the rotor speed based on inflow velocity, should be 1 or greater (this options is probably dependent on max iterations of RANS model)
-OptionsCFD.NumCFDIterations = 1;                            % number of iterations between mooring and CFD
+OptionsCFD.NumCFDIterations = 5;                            % number of iterations between mooring and CFD
 OptionsCFD.CFDtol           = 1e-3;                         % convergence criteria between mooring and CFD coupling (residual is defined in the Newton solver)
 
 % =========================================================================

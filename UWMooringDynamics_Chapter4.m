@@ -257,18 +257,18 @@ q0 = [Mooring.q0;Mooring.lambda0;Mooring.mu0;Mooring.nu0];
 hFig = plotInstant(q0,1,0);
 saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_initial'], 'png')
 
-% % solve for the "slackwater" case
-% Mooring.environment.StreamVelocity = @ZeroVelocity;
-% [qStatic_slackwater,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
-% hFig = plotInstant(qStatic_slackwater,1,0);
-% saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_final_slackwater'], 'png')
-% 
-% % solve for the "velocity profile" case
+% solve for the "slackwater" case
+Mooring.environment.StreamVelocity = @ZeroVelocity;
+[qStatic_slackwater,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
+hFig = plotInstant(qStatic_slackwater,1,0);
+saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_final_slackwater'], 'png')
+
+% solve for the "velocity profile" case
 % Mooring.environment.StreamVelocity = @UniformVelocity;
-% % Mooring.environment.StreamVelocity = Mooring.environment.InletVelocity;
-% [qStatic_current,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
-% hFig = plotInstant(qStatic_current,1,0);
-% saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_final_watercurrent'], 'png')
+Mooring.environment.StreamVelocity = Mooring.environment.InletVelocity;
+[qStatic_current,err,data] = UWMDNewton(@EvaluateStaticPhi,q0);
+hFig = plotInstant(qStatic_current,1,0);
+saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '_final_watercurrent'], 'png')
 
 
 %% CFD Coupling
@@ -321,6 +321,9 @@ if Mooring.CFD
                        
             % Restart the mooring model now with velocities/forces/moments sovled from the CFD model
             [qStaticNext,err,data] = UWMDNewton(@EvaluateStaticPhi,qStatic);
+            
+            % for debug, check the orientation of the turbines
+            TurbineAxisUnitVectors = GetTurbineFlowAxisUnitVector(qStaticNext)
             
             % some error checking, if needed here
             if err
