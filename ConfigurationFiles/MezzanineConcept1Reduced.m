@@ -12,7 +12,7 @@ DynamicModel = false;
 SlacklineConstraint = false;
 CFD = true;                                                 % use CFD to compute forces and velocities on mooring elements
 InletVelocity = [3.0; 0; 0];                                % the final inflow speed
-RampVel = 1.0;                                              % velocity increment until final speed (set to same as InletVelocity to skip the ramping steps)
+RampVel = 3.0;                                              % velocity increment until final speed (set to same as InletVelocity to skip the ramping steps)
 
 % CFD options
 OptionsCFD.graphics         = true;                         % turn off all matlab graphics and prompts (hide in background), when running on HPC

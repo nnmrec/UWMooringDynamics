@@ -305,7 +305,7 @@ if Mooring.CFD
             writeCFD_BC(Mooring,inflow_speed(j));
                 
             % run the CFD solver with the most recent positions of nodes, segments, and bodies
-            [probes,rotors] = run_starccm(probes,rotors,Mooring);  
+            [probes, rotors] = run_starccm(probes,rotors,Mooring);  
             % NOTE: this runs _main.java each iteration which is wasteful
             %       better if run _main on 1st iteration, then only need to
             %       run the "update" macros for 2nd iteration onwards
