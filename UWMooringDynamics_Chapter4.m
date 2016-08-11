@@ -321,9 +321,51 @@ if Mooring.CFD
                        
             % Restart the mooring model now with velocities/forces/moments sovled from the CFD model
             [qStaticNext,err,data] = UWMDNewton(@EvaluateStaticPhi,qStatic);
+            hFig = plotInstant(qStaticNext,1,0);
+            saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '__IterCFD_' num2str(i) '__Inflow_' num2str(j)], 'png')
             
-            % for debug, check the orientation of the turbines
-            TurbineAxisUnitVectors = GetTurbineFlowAxisUnitVector(qStaticNext)
+            % now attempt to apply the cosine correction thing within an
+            % outer loop of Newton solver
+            nThrustCorrectionLoops = 10;
+            TurbineBodyFixedFlowAxis = [1;0;0];
+            ThrustFromCFD = Mooring.Thrust;
+            TorqueFromCFD = Mooring.Torque;
+            BodiesThatAreTurbines = find(ismember({Mooring.bodies.Type},'turbine'));
+            for m = 1:nThrustCorrectionLoops 
+                
+                % this loop modifies the thrust of each turbine
+                for n = 1:size(BodiesThatAreTurbines,2)
+                    RowIndices  = Mooring.bodies(BodiesThatAreTurbines(n)).RowIndices;
+                    alpha       = qStaticNext(RowIndices(4));
+                    beta        = qStaticNext(RowIndices(5));
+                    gamma       = qStaticNext(RowIndices(6));
+                    A           = EulerAngles(alpha,beta,gamma);
+                    
+                    TurbineUnitVector = A*TurbineBodyFixedFlowAxis;
+                    ThrustVector    = Mooring.Thrust(n,:)' ./ norm(Mooring.Thrust(n,:));
+
+                    % Angle between initial turbine thrust unit vector (from the CFD calculation) and the iterating turbine unit vector (changing during the Newton solver)
+                    CosTheta3 = max(dot(ThrustVector, TurbineUnitVector), 0);
+%                     CosTheta3 = abs( dot(ThrustVector, TurbineUnitVector) );
+                    
+                    % Adjusted Thrust and Torque magnitudes
+                    AdjThrust = Mooring.Thrust(n,:).*CosTheta3;
+                    AdjTorque = Mooring.Torque(n,:).*CosTheta3;
+                   
+                    Mooring.Thrust(n,:) = AdjThrust;
+                    Mooring.Torque(n,:) = AdjTorque;
+                end 
+                
+                % Restart the mooring model now with modified thrust/torques based on the cosine correction
+                [qStaticNext,err,data] = UWMDNewton(@EvaluateStaticPhi,qStaticNext);
+                hFig = plotInstant(qStaticNext,1,0);
+                saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '__IterCFD_' num2str(i) '__Inflow_' num2str(j) '__ThrustLoop_' num2str(m)], 'png')
+                    
+            end
+                
+            
+            
+            
             
             % some error checking, if needed here
             if err
@@ -331,9 +373,6 @@ if Mooring.CFD
                 error('WARNING: it seems like UWMDNewton did not converge after the CFD iteration ... stopping. \n');
             end
             
-            % save figures at mooring/CFD iteration checkpoint
-            hFig = plotInstant(qStaticNext,1,0);
-            saveas(hFig, ['Outputs' filesep 'model_' Mooring.casename '__IterCFD_' num2str(i) '__Inflow_' num2str(j)], 'png')
                       
             % compute a convergence criteria
             if norm(qStaticNext - qStatic) < Mooring.OptionsCFD.CFDtol
